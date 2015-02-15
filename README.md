@@ -1,2 +1,6 @@
 # Compilation-basic-C-projet
-Compilation project Basic to C
+Compilation project FreeBasic to C
+
+```
+make
+```
