@@ -16,6 +16,6 @@ all:
 	$(CAMLC) patterns.cmo parser.cmo main.ml -o $(EXEC)
 
 clean:
-	rm -f *.cm[iox] *.mli *~ .*~
+	rm -f *.cm[iox] *.mli *~ .*~ *.o $(EXEC) prog patterns.ml parser.ml prog.c
 
 
