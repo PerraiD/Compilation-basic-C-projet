@@ -5,7 +5,7 @@
 let impr = "Print "
 let var_int = ('0'|['1'-'9']['0'-'9']*)
 let var_double =  ('0'|['1'-'9']['0'-'9']*)('.'['0'-'9']+)?
-let chaine = ['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*
+let var_string = ['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*
 let ident = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 let b_type = "String" | "Double" | "Integer" | "Single" | "Byte" | "Short" | "LongInt" | "UByte" | "UShort" | "UInteger" | "ULongInt" | "Integer Ptr" | "Byte Ptr" | "ZString Ptr"
 
@@ -15,17 +15,17 @@ rule basic = parse
 	| ',' {COMMA}
 	| '\"' {DOUBLEQUOTE}
 	| '\\' {BS}
-	| '(' {LPARENTHESE}
-	| ')' {RPARENTHESE}
+	| '(' {LPAREN}
+	| ')' {RPAREN}
 	
 	| '+' {PLUS}
 	| '-' {MINUS}
-	| '*' {TIMES}
-	| '/' {OBELUS}
+	| '*' {MUL}
+	| '/' {DIV}
 	
 	| var_int as i {INT i}
 	| var_double as d {DOUBLE d}
-	| chaine as ch {CHAINE ch}
+	| var_string as ch {STRING ch}
 	
 	| ident as id {IDENT id}
 

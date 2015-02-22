@@ -10,8 +10,10 @@
 %token <string> PRINT
 %token <string> INT
 %token <string> DOUBLE
-%token <string> CHAINE
+%token <string> STRING
 %token BS
+
+%left BS
 
 /*(* declaration *)*/
 %token <string> DIM
@@ -21,15 +23,26 @@
 /*(* maths *)*/
 %token PLUS
 %token MINUS
-%token TIMES
-%token OBELUS
+%token MUL
+%token DIV
+
+%token LT
+%token GT
+%token EQ
+%token NE
+%token LE
+%token GE
+
+%left LT GT EQ NE LE GE
+%left PLUS MINUS
+%left MUL DIV
 
 /*(* signes *)*/
 %token SEMICOLON
 %token COMMA
 %token DOUBLEQUOTE
-%token LPARENTHESE
-%token RPARENTHESE
+%token LPAREN
+%token RPAREN
 
 %start main
 %type <unit> main
@@ -58,28 +71,35 @@ affichage:
 contenu:
 	contenu formule {$1; output_string oc ("printf(\" %f\",("^$2^")*1.0);")}
 	| contenu IDENT {$1}
-	| contenu DOUBLEQUOTE types DOUBLEQUOTE {$1; output_string oc ("printf(\""^$3^"\");")}
-	| contenu DOUBLEQUOTE types BS types DOUBLEQUOTE {$1; output_string oc ("printf(\""^$3^"\\\\"^$5^"\");")}
+	| contenu DOUBLEQUOTE chaine DOUBLEQUOTE {$1; output_string oc ("printf(\""^$3^"\");")}
 	| contenu SEMICOLON {$1}
 	/*| contenu COMMA {$1; output_string oc ("printf(\"%14s\",\"\");")}*/
 	| {}
 ;
 
-formule:
-	formule operateur formule {$1^$2^$3}
-	| LPARENTHESE formule RPARENTHESE {"("^$2^")"}
+chaine:
+	chaine BS chaine {$1^"\\\\"^$3}
 	| types {$1}
 ;
 
-operateur:
+formule:
+	formule PLUS formule {$1^"+"^$3}
+	| formule MINUS formule {$1^"-"^$3}
+	| formule MUL formule {$1^"*"^$3}
+	| formule DIV formule {$1^"/"^$3}
+	| LPAREN formule RPAREN {"("^$2^")"}
+	| types {$1}
+;
+
+/*operateur:
 	PLUS {"+"}
 	| MINUS {"-"}
-	| TIMES {"*"}
-	| OBELUS {"/"}
-;
+	| MUL {"*"}
+	| DIV {"/"}
+;*/
 
 types:
 	INT {$1}
 	| DOUBLE {$1}
-	| CHAINE {$1}
+	| STRING {$1}
 ;
