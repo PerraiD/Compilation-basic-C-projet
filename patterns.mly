@@ -6,20 +6,27 @@
 
 %token EOF
 
+/*(*var type*)*/
 %token <char> CHAR
 %token <string> PRINT
 %token <string> INT
 %token <string> DOUBLE
 %token <string> STRING
+%token CONST
 %token BS
 
 %left BS
+
+/*(*var value*)*/
+%token <string> VAR_INT
+%token <string> VAR_DOUBLE
+%token <string> VAR_STRING
 
 /*(* declaration *)*/
 %token <string> DIM
 %token <string> As
 %token <string> IDENT
-
+%token CONST 
 /*(* maths *)*/
 %token PLUS
 %token MINUS
@@ -73,13 +80,13 @@ contenu:
 	| contenu IDENT {$1}
 	| contenu DOUBLEQUOTE chaine DOUBLEQUOTE {$1; output_string oc ("printf(\""^$3^"\");")}
 	| contenu SEMICOLON {$1}
-	/*| contenu COMMA {$1; output_string oc ("printf(\"%14s\",\"\");")}*/
+	| contenu declaration {$2}
 	| {}
 ;
 
 chaine:
 	chaine BS chaine {$1^"\\\\"^$3}
-	| types {$1}
+	| var_value {$1}
 ;
 
 formule:
@@ -88,7 +95,7 @@ formule:
 	| formule MUL formule {$1^"*"^$3}
 	| formule DIV formule {$1^"/"^$3}
 	| LPAREN formule RPAREN {"("^$2^")"}
-	| types {$1}
+	| var_value {$1}
 ;
 
 /*operateur:
@@ -97,9 +104,14 @@ formule:
 	| MUL {"*"}
 	| DIV {"/"}
 ;*/
+declaration:
+	CONST var_value {output_string oc (" "^$2)}
 
-types:
-	INT {$1}
-	| DOUBLE {$1}
-	| STRING {$1}
+var_value:
+	VAR_INT {$1}
+	| VAR_DOUBLE {$1}
+	| VAR_STRING {$1}
+
+/*var_type:*/
+
 ;
