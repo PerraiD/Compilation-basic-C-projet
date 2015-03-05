@@ -78,7 +78,8 @@ instructions:
 declaration:
 	DIM AS types liste_variables EOL {output_string oc ($3^" "^$4^";")}
 	| DIM variables EOL {output_string oc ($2)}
-	
+	| CONST IDENT EQ types_var EOL {output_string oc($2)}
+	| CONST IDENT AS types EQ types_var EOL {output_string oc($2)}
 ;
 
 variables:
@@ -101,7 +102,6 @@ contenu:
 	| contenu IDENT {$1}
 	| contenu chaine {$1; output_string oc ("printf("^$2^");")}
 	| contenu SEMICOLON {$1}
-	| contenu declaration {$2}
 	| {}
 ;
 
