@@ -37,6 +37,7 @@ rule basic = parse
 	| '*' {MUL}
 	| '/' {DIV}
 
+	| '=' {EQ}
 	
 	| var_int as i {INT i}
 	| var_double as d {DOUBLE d}

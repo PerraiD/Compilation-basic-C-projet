@@ -78,8 +78,8 @@ instructions:
 declaration:
 	DIM AS types liste_variables EOL {output_string oc ($3^" "^$4^";")}
 	| DIM variables EOL {output_string oc ($2)}
-	| CONST IDENT EQ types_var EOL {output_string oc($2)}
-	| CONST IDENT AS types EQ types_var EOL {output_string oc($2)}
+	| CONST IDENT EQ types_var EOL {output_string oc("#define "^$2^" "^$4^";")}
+	| CONST IDENT AS types EQ types_var EOL {output_string oc("static const "^$4^" "^$2^" = "^$6^";")}	
 ;
 
 variables:
