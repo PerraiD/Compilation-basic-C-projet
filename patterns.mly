@@ -5,20 +5,26 @@
 %}
 
 %token EOF
+%token EOL
 
 %token <char> CHAR
 %token <string> PRINT
 %token <string> INT
 %token <string> DOUBLE
 %token <string> STRING
+%token <string> SUB_STRING
 %token BS
 
 %left BS
 
 /*(* declaration *)*/
-%token <string> DIM
-%token <string> As
+%token DIM
+%token AS
 %token <string> IDENT
+%token <string> TYPE_INT
+%token <string> TYPE_DOUBLE
+%token <string> TYPE_STRING
+%token <string> TYPE_CHAR
 
 /*(* maths *)*/
 %token PLUS
@@ -55,23 +61,35 @@ main:
 
 instructions:
 	instructions affichage {}
-	/*| instructions declaration {}*/
-	| {}
+	| instructions declaration {}
+	| declaration {}
+	| affichage {}
 ;
 
-/*declaration:
-	{}
-;*/
+declaration:
+	DIM AS types liste_variables EOL {output_string oc ($3^" "^$4^";")}
+	| DIM variables EOL {output_string oc ($2)}
+;
+
+variables:
+	variables COMMA IDENT AS types {$1^$5^" "^$3^";\n\t"}
+	| IDENT AS types {$3^" "^$1^";\n\t"}
+;
+
+liste_variables:
+	liste_variables COMMA IDENT {$1^", "^$3}
+	| IDENT {$1}
+;
 
 affichage:
 	PRINT contenu COMMA {$2}
-	| PRINT contenu {$2; output_string oc ("printf(\"\\n\");\n\t")}
+	| PRINT contenu EOL {$2; output_string oc ("printf(\"\\n\");\n\t")}
 ;
 
 contenu:
 	contenu formule {$1; output_string oc ("printf(\" %f\",("^$2^")*1.0);")}
 	| contenu IDENT {$1}
-	| contenu DOUBLEQUOTE chaine DOUBLEQUOTE {$1; output_string oc ("printf(\""^$3^"\");")}
+	| contenu chaine {$1; output_string oc ("printf("^$2^");")}
 	| contenu SEMICOLON {$1}
 	/*| contenu COMMA {$1; output_string oc ("printf(\"%14s\",\"\");")}*/
 	| {}
@@ -79,7 +97,8 @@ contenu:
 
 chaine:
 	chaine BS chaine {$1^"\\\\"^$3}
-	| types {$1}
+	/*| STRING {$1}*/
+	| SUB_STRING {$1}
 ;
 
 formule:
@@ -88,7 +107,8 @@ formule:
 	| formule MUL formule {$1^"*"^$3}
 	| formule DIV formule {$1^"/"^$3}
 	| LPAREN formule RPAREN {"("^$2^")"}
-	| types {$1}
+	| INT {$1}
+	| DOUBLE {$1}
 ;
 
 /*operateur:
@@ -98,8 +118,17 @@ formule:
 	| DIV {"/"}
 ;*/
 
-types:
+types_var:
 	INT {$1}
 	| DOUBLE {$1}
 	| STRING {$1}
+	| SUB_STRING {$1}
 ;
+
+types:
+	TYPE_INT {"int"}
+	| TYPE_DOUBLE {"double"}
+	| TYPE_STRING {"char*"}
+	| TYPE_CHAR {"char"}
+;
+
