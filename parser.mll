@@ -1,7 +1,8 @@
 {
 	open Patterns
-
+	(*open Arbre*)
 	open Lexing
+
 	type arbuste_exception = string * Lexing.position
 	exception ArbusteError of arbuste_exception
 	let error message pos = raise (ArbusteError (message, pos))
@@ -12,6 +13,7 @@
 
 let impr = "Print "
 let const = "Const"
+
 let var_int = ('0'|['1'-'9']['0'-'9']*)
 let var_double =  ('0'|['1'-'9']['0'-'9']*)('.'['0'-'9']+)?
 let var_string = '\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\"'
@@ -22,6 +24,7 @@ let type_string = "String"
 let type_double = "Double"
 let type_integer = "Integer"
 let type_single = "Single"
+
 
 rule basic = parse
 	impr as ip {PRINT ip}
@@ -36,8 +39,11 @@ rule basic = parse
 	| '-' {MINUS}
 	| '*' {MUL}
 	| '/' {DIV}
-
+	| '{' {ACOLLEFT}
+	| '}' {ACOLRIGHT}
 	| '=' {EQ}
+	| '>' {GE}
+	| '<' {LE}
 	
 	| var_int as i {INT i}
 	| var_double as d {DOUBLE d}
@@ -47,11 +53,18 @@ rule basic = parse
 	| "Dim" {DIM}
 	| "As" {AS}
 	| const {CONST}
+	| "If" {IF}
+	| "Then"{THEN}
+	| "Else"{ELSE}
+	| "ElseIF"{ELSEIF}
+	| "End If"{}
+
 	| type_string as str {TYPE_STRING str}
 	| type_double as dbl {TYPE_DOUBLE dbl}
 	| type_integer as itg {TYPE_INT itg}
 	| type_single as sng {TYPE_CHAR sng}
 	
+
 	| ident as id {IDENT id}
 	
 	| '\n' {EOL}

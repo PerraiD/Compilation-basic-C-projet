@@ -20,6 +20,12 @@
 
 %left BS
 
+/*(* CONDITION *)*/
+%token IF THEN ELSE ELSEIF
+%token ACOLLEFT
+%token ACOLRIGHT
+
+
 /*(*var value*)*/
 %token <string> VAR_INT
 %token <string> VAR_DOUBLE
@@ -58,6 +64,8 @@
 %token DOUBLEQUOTE
 %token LPAREN
 %token RPAREN
+
+
 
 %start main
 %type <unit> main
