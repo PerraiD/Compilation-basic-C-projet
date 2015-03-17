@@ -95,6 +95,8 @@ signe:
 declaration:
 	DIM AS types liste_variables EOL {$3^" "^$4^";"}
 	| DIM variables EOL {$2}
+	| CONST IDENT EQ types_var EOL {$2}
+	| CONST IDENT AS types EQ types_var EOL {$2}
 ;
 
 variables:
@@ -118,6 +120,7 @@ contenu:
 	| contenu chaine {$1^"printf("^$2^");"}
 	| contenu SEMICOLON {$1}
 	| {""}
+
 ;
 
 chaine:

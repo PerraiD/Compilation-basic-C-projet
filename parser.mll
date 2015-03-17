@@ -68,3 +68,4 @@ rule basic = parse
 	| ' ' | '\t' | '\n' {basic lexbuf}
 	| _ as c {CHAR c}
 	| eof {EOF}
+
