@@ -13,17 +13,10 @@
 %token <string> INT
 %token <string> DOUBLE
 %token <string> STRING
-
 %token <string> SUB_STRING
-
 %token BS
 
 %left BS
-
-/*(*var value*)*/
-%token <string> VAR_INT
-%token <string> VAR_DOUBLE
-%token <string> VAR_STRING
 
 /*(* declaration *)*/
 %token DIM
@@ -34,6 +27,11 @@
 %token <string> TYPE_DOUBLE
 %token <string> TYPE_STRING
 %token <string> TYPE_CHAR
+
+/*(*condition*)*/
+%token IF
+%token THEN
+%token ENDIF
 
 /*(* maths *)*/
 %token PLUS
@@ -65,20 +63,38 @@
 %%
 
 main:
-	instructions EOF {output_string oc "\n}"}
+	instructions EOF {output_string oc ($1^"\n}")}
 ;
 
 instructions:
-	instructions affichage {}
-	| instructions declaration {}
-	| declaration {}
-	| affichage {}
+	instructions affichage {$1^$2}
+	| instructions declaration {$1^$2}
+	| instructions condition {$1^$2}
+	| declaration {$1}
+	| affichage {$1}
+	| condition {$1}
+;
+
+condition:
+	IF THEN ENDIF {"if{\n\t\n}"}
+;
+
+test:
+	INT signe INT {$1^$2^$3}
+;
+
+signe:
+	LT {"<"}
+	| GT {">"}
+	| EQ {"="}
+	| NE {"!="}
+	| LE {"<="}
+	| GE {">="}
 ;
 
 declaration:
-	DIM AS types liste_variables EOL {output_string oc ($3^" "^$4^";")}
-	| DIM variables EOL {output_string oc ($2)}
-	
+	DIM AS types liste_variables EOL {$3^" "^$4^";"}
+	| DIM variables EOL {$2}
 ;
 
 variables:
@@ -93,23 +109,21 @@ liste_variables:
 
 affichage:
 	PRINT contenu COMMA {$2}
-	| PRINT contenu EOL {$2; output_string oc ("printf(\"\\n\");\n\t")}
+	| PRINT contenu EOL {$2^"printf(\"\\n\");\n\t"}
 ;
 
 contenu:
-	contenu formule {$1; output_string oc ("printf(\" %f\",("^$2^")*1.0);")}
+	contenu formule {$1^"printf(\" %f\",("^$2^")*1.0);"}
 	| contenu IDENT {$1}
-	| contenu chaine {$1; output_string oc ("printf("^$2^");")}
+	| contenu chaine {$1^"printf("^$2^");"}
 	| contenu SEMICOLON {$1}
-	| contenu declaration {$2}
-	| {}
+	| {""}
 ;
 
 chaine:
 	chaine BS chaine {$1^"\\\\"^$3}
 	/*| STRING {$1}*/
 	| SUB_STRING {$1}
-
 ;
 
 formule:

@@ -36,8 +36,18 @@ rule basic = parse
 	| '-' {MINUS}
 	| '*' {MUL}
 	| '/' {DIV}
-
 	
+	| "<" {LT}
+	| ">" {GT}
+	| "=" {EQ}
+	| "!=" {NE}
+	| "<=" {LE}
+	| ">=" {GE}
+
+	| "If" {IF}
+	| "Then" {THEN}
+	| "End If" {ENDIF}
+
 	| var_int as i {INT i}
 	| var_double as d {DOUBLE d}
 	| var_sub_string as sstr {SUB_STRING sstr}
@@ -58,6 +68,3 @@ rule basic = parse
 	| ' ' | '\t' | '\n' {basic lexbuf}
 	| _ as c {CHAR c}
 	| eof {EOF}
-
-
-
