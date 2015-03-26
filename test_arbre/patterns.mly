@@ -24,6 +24,7 @@
 %token ACOLRIGHT
 
 /*(* declaration *)*/
+%token FUNCTION
 %token DIM
 %token AS
 %token CONST
@@ -70,23 +71,27 @@
 %%
 
 main:
-| prog EOF {$1}
+| prog EOF {set_prog_list [] [] []}
 
 
 prog: 
-| import prog  {set_prog_list $1 []}
-| functions prog {set_prog_list [] $1}
-| instr prog {set_prog_list [] [] } 
+| import  {set_prog_list struct_instr struct_fonc $1}
+| functions  {set_prog_list [] [$1] []}
+| instr {set_prog_list [$1] [] []} 
+| import prog  {set_prog_list [] [] $1}
+| functions prog {set_prog_list [] [$1] []}
+| instr prog {set_prog_list [$1] [] []} 
+
 
 import :
-|EOF {Empty}
+|{[]}
 
 instr:
-| PRINT IDENT{Print($2)}
+| PRINT IDENT {Print($2)}
 | IF IDENT condition IDENT {If(Ident $2,$3,Ident $4)} 
 
 functions :
- |EOF {Empty}
+ |FUNCTION {Function}
 
 condition:
 |EQ {Equal}

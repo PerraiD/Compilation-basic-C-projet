@@ -52,6 +52,8 @@ rule basic = parse
 	| "If" {IF}
 	| "Then" {THEN}
 	| "End If" {ENDIF}
+	| "Function"{FUNCTION}
+
 
 	| var_int as i {INT (int_of_string i)	}
 	| var_double as d {DOUBLE d}
