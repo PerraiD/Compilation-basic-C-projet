@@ -1,7 +1,7 @@
 %{	
 	open Arbre
 	let oc = open_out "prog.c"
-	let () = output_string oc "#include <stdio.h>\n"
+	(*let () = output_string oc "#include <stdio.h>\n"*)
 	let () = output_string oc "int main(){\n\n\t"
 
 	let x = {struct_fonc= []; struct_instr=[]; struct_import=[]}
@@ -31,6 +31,7 @@
 %token ACOLRIGHT
 
 /*(* declaration *)*/
+%token <string> INCLUDE
 %token FUNCTION
 %token DIM
 %token AS
@@ -78,29 +79,27 @@
 %%
 
 main:
-| prog EOF {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| prog EOF {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
 
 
-prog: 
-| import  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-| functions  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-| instr {set_prog_list x.struct_instr x.struct_fonc x.struct_import} 
-| import prog  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-| functions prog {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-| instr prog {set_prog_list x.struct_instr  x.struct_fonc x.struct_import} 
+prog:
+	| import prog  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| functions prog {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| instr prog {set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
+	| {set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
 
 
 import :
-|{Empty}
+	| INCLUDE {add_import [Include($1)]}
 
 instr:
-| PRINT IDENT {add_instr [Print($2)]}
-| IF IDENT condition IDENT {add_instr [If(Ident $2,$3,Ident $4)]} 
+	| PRINT IDENT {add_instr [Print($2)]}
+	| IF IDENT condition IDENT {add_instr [If(Ident $2,$3,Ident $4)]} 
 
 functions :
- |FUNCTION {add_fonc [Function]}
+	|FUNCTION {add_fonc [Function]}
 
 condition:
-|EQ {Equal}
-|LT {Lesser}
-|GT {Greater}
+	|EQ {Equal}
+	|LT {Lesser}
+	|GT {Greater}

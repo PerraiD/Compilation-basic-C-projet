@@ -13,6 +13,7 @@
 let impr = "Print "
 let const = "Const"
 
+let inclu = "#include [\' <] ['a'-'z' 'A'-'Z' '_' '.']* [\' >]"
 let var_int = ('0'|['1'-'9']['0'-'9']*)
 let var_double =  ('0'|['1'-'9']['0'-'9']*)('.'['0'-'9']+)?
 let var_string = '\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\"'
@@ -52,7 +53,8 @@ rule basic = parse
 	| "If" {IF}
 	| "Then" {THEN}
 	| "End If" {ENDIF}
-	| "Function"{FUNCTION}
+	| "Function" {FUNCTION}
+	| inclu as i {INCLUDE i}
 
 
 	| var_int as i {INT (int_of_string i)	}
