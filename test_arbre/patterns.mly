@@ -70,14 +70,23 @@
 %%
 
 main:
-| instr EOF {set_ast_list [$1]}
+| prog EOF {$1}
 
 
+prog: 
+| import prog  {set_prog_list $1 []}
+| functions prog {set_prog_list [] $1}
+| instr prog {set_prog_list [] [] } 
+
+import :
+|EOF {Empty}
 
 instr:
 | PRINT IDENT{Print($2)}
 | IF IDENT condition IDENT {If(Ident $2,$3,Ident $4)} 
 
+functions :
+ |EOF {Empty}
 
 condition:
 |EQ {Equal}

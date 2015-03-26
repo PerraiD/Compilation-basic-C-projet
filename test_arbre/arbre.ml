@@ -18,13 +18,19 @@ type t_instr =
 		| Empty
 
 
+type t_fonc = 
+		|Empty
+
 type t_prog = {
-  struct_prog : t_instr list; 
-  struct_fonc : t_fonc list ;
+  struct_prog :   t_instr list;
+  struct_fonc :   t_fonc list;  
 }
 
 
-let set_ast_list d = {struct_prog = d}	
+
+let set_prog_list  d c = {struct_prog = d ; struct_fonc = c}
+
+
 
 let rec  print_instr structprog = match structprog with
 	| If(ast_a,cond,ast_b)::tl -> print_string("If ");print_terminal(ast_a);print_cond(cond);print_terminal(ast_b); print_instr tl
