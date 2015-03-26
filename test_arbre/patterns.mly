@@ -3,6 +3,13 @@
 	let oc = open_out "prog.c"
 	let () = output_string oc "#include <stdio.h>\n"
 	let () = output_string oc "int main(){\n\n\t"
+
+	let x = {struct_fonc= []; struct_instr=[]; struct_import=[]}
+	let add_fonc a = x.struct_fonc <- x.struct_fonc@a
+	let add_import a = x.struct_import <-x.struct_import@a
+	let add_instr a = x.struct_instr <-x.struct_instr@a
+
+
 %}
 
 %token EOF
@@ -71,27 +78,27 @@
 %%
 
 main:
-| prog EOF {set_prog_list [] [] []}
+| prog EOF {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
 
 
 prog: 
-| import  {set_prog_list struct_instr struct_fonc $1}
-| functions  {set_prog_list [] [$1] []}
-| instr {set_prog_list [$1] [] []} 
-| import prog  {set_prog_list [] [] $1}
-| functions prog {set_prog_list [] [$1] []}
-| instr prog {set_prog_list [$1] [] []} 
+| import  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+| functions  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+| instr {set_prog_list x.struct_instr x.struct_fonc x.struct_import} 
+| import prog  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+| functions prog {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+| instr prog {set_prog_list x.struct_instr  x.struct_fonc x.struct_import} 
 
 
 import :
-|{[]}
+|{Empty}
 
 instr:
-| PRINT IDENT {Print($2)}
-| IF IDENT condition IDENT {If(Ident $2,$3,Ident $4)} 
+| PRINT IDENT {add_instr [Print($2)]}
+| IF IDENT condition IDENT {add_instr [If(Ident $2,$3,Ident $4)]} 
 
 functions :
- |FUNCTION {Function}
+ |FUNCTION {add_fonc [Function]}
 
 condition:
 |EQ {Equal}

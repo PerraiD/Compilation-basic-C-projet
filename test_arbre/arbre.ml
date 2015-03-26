@@ -25,16 +25,14 @@ type t_import=
 	|Empty
 
 type t_prog = {
-  struct_instr :  t_instr list;
-  struct_fonc :   t_fonc list;
-  struct_import:   t_import list;
+  mutable struct_instr :  t_instr list;
+  mutable struct_fonc :   t_fonc list;
+  mutable struct_import:   t_import list;
 }
+  
 
+let set_prog_list a b c = {struct_instr = a ; struct_fonc = b; struct_import = c} 
 
-
-let set_prog_list  a b c = {struct_instr = a ; struct_fonc = b; struct_import = c }
-
-let add_prog a = {struct_instr}
 
 
 let rec  print_instr structprog = match structprog with
@@ -61,3 +59,4 @@ let rec print_fonc structprog = match structprog with
 let print_prog prog = 
 	  print_instr prog.struct_instr;
 	  print_fonc prog.struct_fonc
+
