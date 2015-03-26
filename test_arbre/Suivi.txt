@@ -1,0 +1,7 @@
+déclaration de variable constante : 
+
+
+La classe const ne déclare pas une vraie constante, mais indique au compilateur que la valeur de la variable ne doit pas changer. Seulement comparé a define cela respecte un typage sur 
+
+	-> Const  = Int Const en C 
+				ou #define mais pas propre
