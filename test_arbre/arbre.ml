@@ -54,7 +54,7 @@ and  print_cond  = function
 
 let rec print_fonc structprog = match structprog with
 	| Function::tl -> print_string("Fonction"); print_fonc tl
-	| [] -> print_string("vide \n")
+	| [] -> print_string("\n")
 
 let print_prog prog = 
 	  print_instr prog.struct_instr;
