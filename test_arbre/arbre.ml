@@ -23,7 +23,8 @@ type t_instr =
 
 
 type t_fonc = 
-		| Function
+		| Function of string * string
+		| PrintFonc of string
 
 type t_import=
 		| Include of string
@@ -58,7 +59,8 @@ and  print_cond  = function
 
 
 let rec print_fonc structprog = match structprog with
-	| Function::tl -> print_string("Fonction"); print_fonc tl
+	| Function(a,b)::tl -> print_string("Fonction"); print_fonc tl
+	| PrintFonc(print)::tl-> print_string(print^"\n"); print_fonc tl
 	| [] -> print_string("vide \n")
 	
 let rec print_import structprog = match structprog with
@@ -75,7 +77,8 @@ let rec  print_fi structprog = match structprog with
 	| [] -> ()
 
 let rec print_fil structprog = match structprog with
-	| Function::tl -> output_string oc ("function(\"\"){}"); print_fil tl
+	| Function(nom,typ)::tl -> output_string oc (typ^" "^nom^"{\n"); print_fil tl
+	| PrintFonc(print)::tl-> output_string oc ("printf(\""^print^"\");\n}\n"); print_fil tl
 	| [] -> ()
 	
 let rec print_f structprog = match structprog with

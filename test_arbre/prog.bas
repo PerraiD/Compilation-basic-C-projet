@@ -1,1 +1,1 @@
-Print a Function Print b
+Sub Test() Print w End Sub
