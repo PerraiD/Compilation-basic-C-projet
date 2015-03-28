@@ -1,8 +1,5 @@
 %{	
 	open Arbre
-	let oc = open_out "prog.c"
-	let () = output_string oc "#include <stdio.h>\n"
-	let () = output_string oc "int main(){\n\n\t"
 
 	let x = {struct_fonc= []; struct_instr=[]; struct_import=[]}
 	let add_fonc a = x.struct_fonc <- x.struct_fonc@a
@@ -31,7 +28,7 @@
 %token ACOLRIGHT
 
 /*(* declaration *)*/
-%token FUNCTION
+%token <string> INCLUDE
 %token DIM
 %token AS
 %token CONST
@@ -40,6 +37,13 @@
 %token <string> TYPE_DOUBLE
 %token <string> TYPE_STRING
 %token <string> TYPE_CHAR
+
+/*(*Fonction*)*/
+%token FUNCTION
+%token <string> FUNC_NAME
+%token END_FUNC
+%token SUB
+%token END_SUB
 
 /*(*condition*)*/
 %token IF
@@ -78,29 +82,44 @@
 %%
 
 main:
-| prog EOF {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| prog EOF {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+;
 
-
-prog: 
-| import  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-| functions  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-| instr {set_prog_list x.struct_instr x.struct_fonc x.struct_import} 
-| import prog  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-| functions prog {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-| instr prog {set_prog_list x.struct_instr  x.struct_fonc x.struct_import} 
-
+prog:
+	| import prog  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| functions prog {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| instr prog {set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
+	| {set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
+;
 
 import :
-|{Empty}
+	| INCLUDE {add_import [Include($1)]}
+;
 
 instr:
-| PRINT IDENT {add_instr [Print($2)]}
-| IF IDENT condition IDENT {add_instr [If(Ident $2,$3,Ident $4)]} 
+	| PRINT IDENT EOL {add_instr [Print($2)]}
+	| PRINT IDENT {add_instr [Print($2)]}
+	| IF IDENT condition IDENT {add_instr [If(Ident $2,$3,Ident $4)]} 
+;
+
+fonc_instr:
+	| PRINT IDENT fonc_instr {PrintFonc($2)}
+	| {PrintFonc("")}
 
 functions :
- |FUNCTION {add_fonc [Function]}
+	| SUB FUNC_NAME EOL fonc_instr END_SUB {add_fonc [Function($2,"void")]; add_fonc [$3]}
+	| FUNCTION FUNC_NAME AS types instr END_FUNC {add_fonc [Function($2,$4)]}
+;
 
 condition:
-|EQ {Equal}
-|LT {Lesser}
-|GT {Greater}
+	|EQ {Equal}
+	|LT {Lesser}
+	|GT {Greater}
+;
+
+types:
+	TYPE_INT {"int"}
+	| TYPE_DOUBLE {"double"}
+	| TYPE_STRING {"char*"}
+	| TYPE_CHAR {"char"}
+;

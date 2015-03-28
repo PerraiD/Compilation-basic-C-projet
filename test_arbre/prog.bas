@@ -1,1 +1,4 @@
-Function Print A Function Print B 
+Sub Test() 
+Print a 
+End Sub 
+Print B Print C Print
