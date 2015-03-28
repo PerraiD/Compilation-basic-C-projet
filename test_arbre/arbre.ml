@@ -51,16 +51,19 @@ let rec  print_instri structprog = match structprog with
 	
 
 and print_terminal t = match t with 
-	| Ident(id) -> print_string(id);
+	| Ident(id) -> output_string oc (id);
 	
 
 and  print_cond  = function
-	| Lesser -> print_string("<")
-	| Greater ->  print_string(">")
-	| Equal -> print_string("=")
+	| Lesser -> output_string oc("<")
+	| Greater ->  output_string oc(">")
+	| Equal -> output_string oc("=")
 
 	
 let rec  print_instr structprog = match structprog with
+	| If(term_a,cond,term_b)::tl -> output_string oc ("If ");print_terminal(term_a);print_cond(cond);print_terminal(term_b); print_instr tl
+	| Then::tl-> output_string oc(" Then {"); print_instr tl
+	| Else::tl->  output_string oc("Else"); print_instr tl
 	| Print(print)::tl-> output_string oc ("printf(\""^print^"\");\n"); for i=0 to indent-1 do output_string oc "\t" done; print_instr tl
 	| Empty::tl-> print_instr tl
 	| [] -> ()

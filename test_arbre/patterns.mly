@@ -98,7 +98,7 @@ import :
 
 instr:
 	| PRINT IDENT {add_instr [Print($2)]}
-	| IF IDENT condition IDENT {add_instr [If(Ident $2,$3,Ident $4)]}
+	| IF IDENT condition IDENT THEN {add_instr [If(Ident $2,$3,Ident $4)];add_instr [Then]}
 	| EOL {add_instr [Empty]}  
 ;
 
