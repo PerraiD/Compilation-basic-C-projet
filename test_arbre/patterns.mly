@@ -89,7 +89,7 @@ prog:
 	| import prog  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
 	| functions prog {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
 	| instr prog {set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
-	| {set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
+	| {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
 ;
 
 import :
@@ -98,18 +98,22 @@ import :
 
 instr:
 	| PRINT IDENT {add_instr [Print($2)]}
-	| IF IDENT condition IDENT {add_instr [If(Ident $2,$3,Ident $4)]} 
+	| IF IDENT condition IDENT {add_instr [If(Ident $2,$3,Ident $4)]}
+	| EOL {add_instr [Empty]}  
+;
+
+
+functions :
+	| SUB FUNC_NAME EOL fonc_instr {add_fonc [Function($2,"void")]; add_fonc $4}
+	| FUNCTION FUNC_NAME AS types instr EOL  {add_fonc [Function($2,$4)]}
+	| END_SUB {add_fonc [Empty]}
+	| END_FUNC {add_fonc [Empty]}
 ;
 
 fonc_instr:
-	| PRINT IDENT fonc_instr {PrintFonc($2)}
-	| {PrintFonc("")}
-
-functions :
-	| SUB FUNC_NAME fonc_instr END_SUB {add_fonc [Function($2,"void")]; add_fonc [$3]}
-	| FUNCTION FUNC_NAME AS types instr END_FUNC {add_fonc [Function($2,$4)]}
-;
-
+	| PRINT IDENT EOL fonc_instr {PrintFonc($2)::$4}
+	| {[Empty]}
+	
 condition:
 	|EQ {Equal}
 	|LT {Lesser}

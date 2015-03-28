@@ -1,1 +1,6 @@
-Sub Test() Print w End Sub
+Sub Test() 
+Print A 
+Print B
+Print C
+End Sub
+ 
