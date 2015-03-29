@@ -6,19 +6,24 @@ type  t_cond =
 		| Lesser 
 		| Greater 
 		| Equal
+		| Notequal
+		| Lessequal
+		| Greaterequal
 		| Empty
 
 
 type t_terminal =
 		| Ident of string 
-		
+		| Empty
 
 
 type t_instr = 
 		| Print of string
-		| If of t_terminal * t_cond * t_terminal 
+		| If of t_terminal * t_cond * t_terminal
+		| ElseIf of t_terminal * t_cond * t_terminal
 		| Then 
 		| Else 
+		| EndIf
 		| Empty
 
 
@@ -40,31 +45,28 @@ type t_prog = {
 let set_prog_list a b c = {struct_instr = a ; struct_fonc = b; struct_import = c} 
 
 
-
-let rec  print_instri structprog = match structprog with
-	| If(ast_a,cond,ast_b)::tl -> print_string("If ");print_terminal(ast_a);print_cond(cond);print_terminal(ast_b); print_instri tl
-	| Then::tl-> print_string("Then"); print_instri tl
-	| Else::tl->  print_string("Else"); print_instri tl
-	| Print(print)::tl-> print_string(print^"\n"); print_instri tl
-	| Empty::tl -> print_instri tl
-	| [] -> ()
-	
-
-and print_terminal t = match t with 
+let rec print_terminal t = match t with 
 	| Ident(id) -> output_string oc (id);
+	| Empty -> ()
 	
 
 and  print_cond  = function
 	| Lesser -> output_string oc("<")
 	| Greater ->  output_string oc(">")
 	| Equal -> output_string oc("=")
+	| Notequal -> output_string oc("!=")
+	| Lessequal ->  output_string oc("<=")
+	| Greaterequal -> output_string oc(">=")
+	| Empty -> ()
 
 	
 let rec  print_instr structprog = match structprog with
-	| If(term_a,cond,term_b)::tl -> output_string oc ("If ");print_terminal(term_a);print_cond(cond);print_terminal(term_b); print_instr tl
-	| Then::tl-> output_string oc(" Then {"); print_instr tl
-	| Else::tl->  output_string oc("Else"); print_instr tl
-	| Print(print)::tl-> output_string oc ("printf(\""^print^"\");\n"); for i=0 to indent-1 do output_string oc "\t" done; print_instr tl
+	| If(term_a,cond,term_b)::tl -> output_string oc ("if ");print_terminal(term_a);print_cond(cond);print_terminal(term_b); print_instr tl
+	| ElseIf(term_a,cond,term_b)::tl -> output_string oc ("else if ");print_terminal(term_a);print_cond(cond);print_terminal(term_b); print_instr tl
+	| Then::tl-> output_string oc(" { \n"); print_instr tl
+	| Else::tl->  output_string oc("} Else { \n"); print_instr tl
+	| EndIf::tl -> output_string oc("}\n")
+	| Print(print)::tl->  output_string oc ("printf(\""^print^"\");\n");for i=0 to indent-1 do output_string oc "\t" done ; print_instr tl
 	| Empty::tl-> print_instr tl
 	| [] -> ()
 

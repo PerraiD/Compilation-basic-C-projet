@@ -73,7 +73,7 @@ rule basic = parse
 	| "If" {IF}
 	| "Then"{THEN}
 	| "Else"{ELSE}
-	| "ElseIF"{ELSEIF}
+	| "Elseif"{ELSEIF}
 	| "End If"{ENDIF}
 
 	| type_string as str {TYPE_STRING str}

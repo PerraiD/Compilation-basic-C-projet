@@ -6,7 +6,9 @@
 	let add_import a = x.struct_import <-x.struct_import@a
 	let add_instr a = x.struct_instr <-x.struct_instr@a
 
-
+	let rec ajout_fin(l,e) = match l with
+		| [] -> [e]
+		| p:: r -> p::ajout_fin(r,e);;	
 %}
 
 %token EOF
@@ -86,28 +88,35 @@ main:
 ;
 
 prog:
-	| import prog  {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-	| functions prog {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-	| instr prog {set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
+	| import prog  {add_import $1;set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| functions prog {add_fonc $1;set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| instr prog {add_instr $1;set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
 	| {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
 ;
 
 import :
-	| INCLUDE {add_import [Include($1)]}
+	| INCLUDE {[Include($1)]}
 ;
 
 instr:
-	| PRINT IDENT {add_instr [Print($2)]}
-	| IF IDENT condition IDENT THEN {add_instr [If(Ident $2,$3,Ident $4)];add_instr [Then]}
-	| EOL {add_instr [Empty]}  
+	| IF IDENT condition IDENT instr {If(Ident $2,$3,Ident $4)::$5}
+	| IF IDENT instr {If(Ident $2,Empty,Empty)::$3}
+	| THEN instr {Then::$2}
+	| ELSE instr {Else::$2}
+	| ELSEIF IDENT condition IDENT instr {ElseIf(Ident $2,$3,Ident $4)::$5}
+	| ELSEIF IDENT instr {ElseIf(Ident $2,Empty,Empty)::$3}
+	| ENDIF instr {EndIf::$2}
+	| PRINT IDENT instr {Print($2)::$3}
+	| EOL instr {Empty::$2}
+	| {[Empty]}
 ;
 
 
 functions :
-	| SUB FUNC_NAME EOL fonc_instr {add_fonc [Function($2,"void")]; add_fonc $4}
-	| FUNCTION FUNC_NAME AS types instr EOL  {add_fonc [Function($2,$4)]}
-	| END_SUB {add_fonc [Empty]}
-	| END_FUNC {add_fonc [Empty]}
+	| SUB FUNC_NAME EOL fonc_instr { Function($2,"void")::$4}
+	| FUNCTION FUNC_NAME AS types instr EOL  {[Function($2,$4)]}
+	| END_SUB {[Empty]}
+	| END_FUNC {[Empty]}
 ;
 
 fonc_instr:
@@ -118,6 +127,9 @@ condition:
 	|EQ {Equal}
 	|LT {Lesser}
 	|GT {Greater}
+	|NE {Notequal} 
+	|LE {Lessequal} 
+	|GE {Greaterequal} 
 ;
 
 types:
