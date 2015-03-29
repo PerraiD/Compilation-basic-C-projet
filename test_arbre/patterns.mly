@@ -47,12 +47,14 @@
 %token SUB
 %token END_SUB
 
-/*(*condition*)*/
+/*(*structure conditionnelle*)*/
 %token IF
 %token THEN
 %token ELSE
 %token ELSEIF
 %token ENDIF
+%token WHILE
+%token WEND
 
 /*(* maths *)*/
 %token PLUS
@@ -106,6 +108,9 @@ instr:
 	| ELSEIF IDENT condition IDENT instr {ElseIf(Ident $2,$3,Ident $4)::$5}
 	| ELSEIF IDENT instr {ElseIf(Ident $2,Empty,Empty)::$3}
 	| ENDIF instr {EndIf::$2}
+	| WHILE IDENT condition IDENT instr {While(Ident $2,$3,Ident $4)::$5}
+	| WHILE IDENT instr {While(Ident $2,Empty,Empty)::$3}
+	| WEND instr {Wend::$2}
 	| PRINT IDENT instr {Print($2)::$3}
 	| EOL instr {Empty::$2}
 	| {[Empty]}
@@ -114,7 +119,7 @@ instr:
 
 functions :
 	| SUB FUNC_NAME EOL fonc_instr { Function($2,"void")::$4}
-	| FUNCTION FUNC_NAME AS types instr EOL  {[Function($2,$4)]}
+	| FUNCTION FUNC_NAME AS types fonc_instr EOL  {[Function($2,$4)]}
 	| END_SUB {[Empty]}
 	| END_FUNC {[Empty]}
 ;

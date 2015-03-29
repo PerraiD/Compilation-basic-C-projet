@@ -58,11 +58,13 @@ rule basic = parse
 	| "End Function" {END_FUNC}
 	| "Sub" {SUB}
 	| "End Sub" {END_SUB}
+	| "While"{WHILE}
+	| "Wend" {WEND}
 	| func_name as fn {FUNC_NAME fn}
 	| inclu as i {INCLUDE i}
 
 
-	| var_int as i {INT (int_of_string i)	}
+	| var_int as i {INT (int_of_string i)}
 	| var_double as d {DOUBLE d}
 	| var_sub_string as sstr {SUB_STRING sstr}
 	| var_string as str {STRING str}

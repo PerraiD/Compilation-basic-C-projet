@@ -24,6 +24,8 @@ type t_instr =
 		| Then 
 		| Else 
 		| EndIf
+		| While of t_terminal * t_cond * t_terminal
+		| Wend
 		| Empty
 
 
@@ -65,7 +67,9 @@ let rec  print_instr structprog = match structprog with
 	| ElseIf(term_a,cond,term_b)::tl -> output_string oc ("else if ");print_terminal(term_a);print_cond(cond);print_terminal(term_b); print_instr tl
 	| Then::tl-> output_string oc(" { \n"); print_instr tl
 	| Else::tl->  output_string oc("} Else { \n"); print_instr tl
-	| EndIf::tl -> output_string oc("}\n")
+	| EndIf::tl -> output_string oc("}\n"); print_instr tl
+	| While(term_a,cond,term_b)::tl -> output_string oc ("While ");print_terminal(term_a);print_cond(cond);print_terminal(term_b);output_string oc (" { \n"); print_instr tl
+	| Wend::tl -> output_string oc("}\n"); print_instr tl;
 	| Print(print)::tl->  output_string oc ("printf(\""^print^"\");\n");for i=0 to indent-1 do output_string oc "\t" done ; print_instr tl
 	| Empty::tl-> print_instr tl
 	| [] -> ()
