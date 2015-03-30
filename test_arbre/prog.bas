@@ -1,4 +1,2 @@
-Sub Test() 
-Print a 
-End Sub 
-Print B Print C Print
+For i As Integer = 0 To a Step +2
+Next i
