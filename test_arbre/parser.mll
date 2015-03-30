@@ -20,7 +20,7 @@ let var_double =  ('0'|['1'-'9']['0'-'9']*)('.'['0'-'9']+)?
 let var_string = '\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\"'
 let var_sub_string = ('\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']* (['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\\')* ['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\"')
 let ident = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
-let b_type = "String" | "Double" | "Integer" | "Single" | "Byte" | "Short" | "LongInt" | "UByte" | "UShort" | "UInteger" | "ULongInt" | "Integer Ptr" | "Byte Ptr" | "ZString Ptr"
+let b_type =  "Byte" | "Short" | "LongInt" | "UByte" | "UShort" | "UInteger" | "ULongInt" | "Integer Ptr" | "Byte Ptr" | "ZString Ptr"
 let type_string = "String"
 let type_double = "Double"
 let type_integer = "Integer"
@@ -60,16 +60,21 @@ rule basic = parse
 	| "End Sub" {END_SUB}
 	| "While"{WHILE}
 	| "Wend" {WEND}
+
+	| "For" {FOR}
+	| "To" {TO}
+	| "Step" {STEP}
 	
 	| "Until" {UNTIL}
 	| "Do" {DO}
 	| "Loop"{LOOP}
+	| "Next"{NEXT}
 
 	| func_name as fn {FUNC_NAME fn}
 	| inclu as i {INCLUDE i}
 
 
-	| var_int as i {INT (int_of_string i)}
+	| var_int as i {INT i}
 	| var_double as d {DOUBLE d}
 	| var_sub_string as sstr {SUB_STRING sstr}
 	| var_string as str {STRING str}
@@ -83,10 +88,10 @@ rule basic = parse
 	| "Elseif"{ELSEIF}
 	| "End If"{ENDIF}
 
-	| type_string as str {TYPE_STRING str}
-	| type_double as dbl {TYPE_DOUBLE dbl}
-	| type_integer as itg {TYPE_INT itg}
-	| type_single as sng {TYPE_CHAR sng}
+	| type_string {TYPE_STRING}
+	| type_double {TYPE_DOUBLE}
+	| type_integer  {TYPE_INT}
+	| type_single {TYPE_CHAR}
 	
 
 	| ident as id {IDENT id}
