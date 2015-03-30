@@ -56,6 +56,11 @@
 %token WHILE
 %token WEND
 
+%token DO
+%token UNTIL
+%token LOOP
+
+
 /*(* maths *)*/
 %token PLUS
 %token MINUS
@@ -108,10 +113,21 @@ instr:
 	| ELSEIF IDENT condition IDENT instr {ElseIf(Ident $2,$3,Ident $4)::$5}
 	| ELSEIF IDENT instr {ElseIf(Ident $2,Empty,Empty)::$3}
 	| ENDIF instr {EndIf::$2}
+	
 	| WHILE IDENT condition IDENT instr {While(Ident $2,$3,Ident $4)::$5}
 	| WHILE IDENT instr {While(Ident $2,Empty,Empty)::$3}
 	| WEND instr {Wend::$2}
+
+	| DO UNTIL IDENT condition IDENT instr {While(Ident $3,$4,Ident $5)::$6}
+	| DO UNTIL IDENT instr {While(Ident $3,Empty,Empty)::$4}
+
+	| DO instr {Do::$2} 
+	| UNTIL IDENT condition IDENT instr {Until(Ident $2,$3,Ident $4)::$5}
+	| UNTIL IDENT instr {Until(Ident $2,Empty,Empty)::$3}
+	| LOOP instr {Loop::$2}
+
 	| PRINT IDENT instr {Print($2)::$3}
+	
 	| EOL instr {Empty::$2}
 	| {[Empty]}
 ;

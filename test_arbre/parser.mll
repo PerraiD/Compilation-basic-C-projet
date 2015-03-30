@@ -60,6 +60,11 @@ rule basic = parse
 	| "End Sub" {END_SUB}
 	| "While"{WHILE}
 	| "Wend" {WEND}
+	
+	| "Until" {UNTIL}
+	| "Do" {DO}
+	| "Loop"{LOOP}
+
 	| func_name as fn {FUNC_NAME fn}
 	| inclu as i {INCLUDE i}
 
