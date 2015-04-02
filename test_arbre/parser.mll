@@ -87,6 +87,9 @@ rule basic = parse
 	| "Else"{ELSE}
 	| "Elseif"{ELSEIF}
 	| "End If"{ENDIF}
+	
+	| "True"{TRUE}
+	| "False"{FALSE}
 
 	| type_string {TYPE_STRING}
 	| type_double {TYPE_DOUBLE}
