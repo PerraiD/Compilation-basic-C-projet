@@ -113,7 +113,8 @@ import :
 ;
 
 instr:	
-	| IF  condition if_instr {If($2)::$3}
+	| IF condition THEN instr else_block ENDIF instr {If($2)::Then::($4@$5@EndIf::$7)}
+	/*| IF  condition if_instr {If($2)::$3}*/
 	
 	
 	| WHILE condition instr {While($2)::$3}
@@ -136,12 +137,18 @@ instr:
 
 ;
 
-if_instr :
+/*if_instr :
 	| THEN instr {Then::$2}
 	| ELSE instr {Else::$2}
 	| ELSEIF condition instr {ElseIf($2)::$3}
 	| ENDIF instr {EndIf::$2}
-	
+;*/
+
+else_block :
+	| ELSEIF condition THEN instr else_block {ElseIf($2)::Then::($4@$5)}
+	| ELSE instr {Else::$2}
+	| {[Empty]}
+;
 
 functions :
 	| SUB FUNC_NAME EOL fonc_instr {Function($2,"void")::$4}

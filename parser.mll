@@ -85,7 +85,7 @@ rule basic = parse
 	| "If" {IF}
 	| "Then"{THEN}
 	| "Else"{ELSE}
-	| "Elseif"{ELSEIF}
+	| "ElseIf"{ELSEIF}
 	| "End If"{ENDIF}
 	
 	| "True"{TRUE}
