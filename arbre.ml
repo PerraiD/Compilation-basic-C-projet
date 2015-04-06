@@ -1,19 +1,22 @@
 
 let oc = open_out "prog.c"
-let indent = ref 1
+let indent = ref 0
+let indent_func = ref 0
 let includeprintf = ref false
 
 type t_terminal =
 		| Ident of string 
 		| Integer of string
 		| Double of string
+		| Char of string
+		| String of string
 		| True
 		| False
 		| As
 		| To
 		| Step 
 		| Empty
-
+;;
 
 type  t_operateur = 
 		| Lesser 
@@ -23,15 +26,16 @@ type  t_operateur =
 		| Lessequal
 		| Greaterequal
 		| Empty
+;;
 
 type t_condition=
 		| Conditionnelle of t_terminal * t_operateur * t_terminal
-		
+;;		
 
 type t_math = 
 		| Minus
 		| Plus
-
+;;
 
 type  t_type = 
 		| Tint  of string
@@ -39,9 +43,10 @@ type  t_type =
 		| Tstring of string
 		| Tchar of string
 		| Empty
+;;
 
 type t_instr = 
-		| Print of string
+		| Print of t_terminal
 		| If of t_condition
 		| ElseIf of t_condition
 		| Then 
@@ -59,31 +64,40 @@ type t_instr =
 		| Next
 		
 		| Empty
+;;
 
-
-type t_fonc = 
-		| Function of string * string
-		| PrintFonc of string
+type t_fonc =
+		| Sub of string * string
+		| EndSub
+		| Function of string * string * string
+		| Return of t_terminal
+		| EndFunc
+		| PrintFunc of t_terminal
 		| Empty
+;;
 
 type t_import=
 		| Include of string
+;;
 
 type t_prog = {
   mutable struct_instr :  t_instr list;
   mutable struct_fonc :   t_fonc list;
   mutable struct_import:   t_import list;
-}
+};;
   
 
 let set_prog_list a b c = {struct_instr = a ; struct_fonc = b; struct_import = c};;
 
-let indentation = function () -> for i=0 to !indent-1 do output_string oc "\t" done;;
+let indentation = function () -> for i=0 to !indent do output_string oc "\t" done;;
+let indentation_fonc = function () -> for i=1 to !indent_func do output_string oc "\t" done;;
 
 let rec print_terminal t = match t with 
 	| Ident(id) -> output_string oc (id);
 	| Double(v) -> output_string oc (v);
 	| Integer(v) -> output_string oc (v);
+	| Char(v) -> output_string oc (v);
+	| String(v) -> output_string oc (v);
 	| Empty -> ();
 	| _ -> ();	
 
@@ -103,12 +117,20 @@ and print_math = function
 	| Minus -> output_string oc ("-");
 	| Plus -> output_string oc ("+");
 
-and print_type =function 
-	| Tint (v) ->output_string oc (v);
-	| Tdouble(v) ->output_string oc (v);
-	| Tstring(v) ->output_string oc (v);
-	| Tchar(v) ->output_string oc (v);
+and print_type = function 
+	| Tint(v) -> output_string oc (v);
+	| Tdouble(v) -> output_string oc (v);
+	| Tstring(v) -> output_string oc (v);
+	| Tchar(v) -> output_string oc (v);
 	| Empty -> ();
+;;
+
+let return_type = function
+	| Tint(v) -> v;
+	| Tdouble(v) -> v;
+	| Tstring(v) -> v;
+	| Tchar(v) -> v;
+	| Empty -> "";
 ;;
 
 let rec print_instr structprog = match structprog with
@@ -130,16 +152,20 @@ let rec print_instr structprog = match structprog with
 	 print_terminal(t_a);print_math(math);output_string oc("=");print_terminal(t_i);output_string oc("){\n");print_instr tl;
 	|Next::tl -> indent:=!indent-1; indentation (); output_string oc ("}\n"); print_instr tl;
 
-	| Print(print)::tl-> indentation (); output_string oc ("printf(\""^print^"\");\n"); print_instr tl;
+	| Print(print)::tl-> indentation (); output_string oc ("printf(\""); print_terminal(print); output_string oc ("\");\n"); print_instr tl;
 	| Empty::tl-> print_instr tl;
 	| [] -> ();
 ;;
 
 let rec print_fonc structprog = match structprog with
-	| Function(nom,typ)::tl -> output_string oc (typ^" "^nom^"{\n"); print_fonc tl;
-	| PrintFonc(print)::tl-> output_string oc ("printf(\""^print^"\");\n"); print_fonc tl;
+	| Sub(nom,args)::tl -> indentation_fonc (); indent_func:=!indent_func+1; output_string oc ("void "^nom^args^"{\n"); print_fonc tl;
+	| EndSub::tl -> indent_func:=!indent_func-1; indentation_fonc (); output_string oc ("}\n\n"); print_fonc tl;
+	| Function(nom,type_retour,args)::tl -> indentation_fonc (); indent_func:=!indent_func+1; output_string oc (type_retour^nom^args^"{\n"); print_fonc tl;
+	| Return(retour)::tl -> indentation_fonc (); output_string oc ("return "); print_terminal(retour); output_string oc (";\n"); print_fonc tl;
+	| EndFunc::tl -> indent_func:=!indent_func-1; indentation_fonc (); output_string oc ("}\n\n"); print_fonc tl;
+	| PrintFunc(print)::tl-> indentation_fonc (); output_string oc ("printf(\""); print_terminal(print); output_string oc ("\");\n"); print_fonc tl;
 	| Empty::tl -> print_fonc tl;
-	| [] -> output_string oc ("\n");
+	| [] -> ();
 ;;
 	
 let rec print_import structprog = match structprog with
@@ -156,8 +182,8 @@ let rec lookingForIncludes structprog = match structprog with
 let print_prog prog =
 	lookingForIncludes prog.struct_instr;
 	print_import prog.struct_import;
+	print_fonc prog.struct_fonc;
 	output_string oc "int main(){\n\n";
 	print_instr prog.struct_instr;
 	output_string oc "\n}\n\n";
-	print_fonc prog.struct_fonc
 ;;

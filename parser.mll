@@ -13,7 +13,7 @@
 let impr = "Print "
 let const = "Const"
 
-let func_name = ['a'-'z' 'A'-'Z']* "()"
+(*let func_name = ['a'-'z' 'A'-'Z']**)
 let inclu = "#include [\' <] ['a'-'z' 'A'-'Z' '_' '.']* [\' >]"
 let var_int = ('0'|['1'-'9']['0'-'9']*)
 let var_double =  ('0'|['1'-'9']['0'-'9']*)('.'['0'-'9']+)?
@@ -56,7 +56,10 @@ rule basic = parse
 	| "Else" {ELSE}
 	| "ElseIf" {ELSEIF}
 	| "End If" {ENDIF}
+	
+	| "Declare" {DECLARE}
 	| "Function" {FUNCTION}
+	| "Return" {RETURN}
 	| "End Function" {END_FUNC}
 	| "Sub" {SUB}
 	| "End Sub" {END_SUB}
@@ -72,7 +75,7 @@ rule basic = parse
 	| "Loop" {LOOP}
 	| "Next" {NEXT}
 
-	| func_name as fn {FUNC_NAME fn}
+	(*| func_name as fn {FUNC_NAME fn}*)
 	| inclu as i {INCLUDE i}
 
 
