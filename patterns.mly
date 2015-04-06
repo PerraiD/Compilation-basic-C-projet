@@ -113,7 +113,10 @@ import :
 	| INCLUDE {[Include($1)]}
 ;
 
-instr:	
+instr :
+	| DIM AS types IDENT enum_ident instr {DimMult(return_type($3), $4^$5)::$6}
+	| DIM IDENT AS types enum_ident instr {Dim(return_type($4), $2, $5)::$6}
+	
 	| IF condition THEN instr else_block ENDIF instr {If($2)::Then::($4@$5@EndIf::$7)}	
 	
 	| DO WHILE condition instr LOOP instr {Do::($4@Loop::DoWhile($3)::$6)}
@@ -144,19 +147,23 @@ else_block :
 fonctions :
 	| SUB IDENT args fonc_instr END_SUB {Sub($2,$3)::($4@[EndSub])}
 	| FUNCTION IDENT args AS types fonc_instr RETURN terminal EOL END_FUNC {Function($2,return_type($5),$3)::($6@Return($8)::[EndFunc])}
-	/*| FUNCTION IDENT args AS types fonc_instr RETURN EOL END_FUNC {Function($2,return_type($5),$3)::($6@[EndFunc])}*/
 	| DECLARE FUNCTION IDENT args AS types {[Empty]}
 ;
 
 args :
-	| LPAREN enum_param RPAREN {"("^$2^")"}
+	| LPAREN IDENT AS types enum_args RPAREN {"("^return_type($4)^$2^$5^")"}
 	| LPAREN RPAREN {"()"}
 	| {"()"}
 ;
 
-enum_param :
-	| IDENT AS types COMMA enum_param {return_type($3)^$1^", "^$5}
-	| IDENT AS types {return_type($3)^$1}
+enum_args :
+	| COMMA IDENT AS types enum_args {return_type($4)^$2^", "^$5}
+;
+
+enum_ident :
+	| COMMA IDENT AS types enum_ident {return_type($4)^$2^"; "^$5}
+	| COMMA IDENT enum_ident {", "^$2^$3}
+	| {""}
 ;
 
 fonc_instr :

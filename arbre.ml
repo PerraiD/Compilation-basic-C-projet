@@ -45,7 +45,9 @@ type  t_type =
 		| Empty
 ;;
 
-type t_instr = 
+type t_instr =
+		| DimMult of string * string
+		| Dim of string * string * string
 		| Print of t_terminal
 		| If of t_condition
 		| ElseIf of t_condition
@@ -134,6 +136,9 @@ let return_type = function
 ;;
 
 let rec print_instr structprog = match structprog with
+	| DimMult(typ, vars)::tl -> indentation (); output_string oc (typ^vars^";\n"); print_instr tl;
+	| Dim(typ, var, vars)::tl -> indentation (); output_string oc (typ^var^"; "^vars^"\n"); print_instr tl;
+
 	| If(cond)::tl -> indentation (); indent:=!indent+1; output_string oc ("if ");print_condition(cond); print_instr tl;
 	| ElseIf(cond)::tl -> indent:=!indent-1; indentation (); indent:=!indent+1; output_string oc ("}else if ");print_condition(cond); print_instr tl;
 	| Then::tl -> output_string oc(" { \n"); print_instr tl;
