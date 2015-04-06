@@ -113,36 +113,26 @@ import :
 ;
 
 instr:	
-	| IF condition THEN instr else_block ENDIF instr {If($2)::Then::($4@$5@EndIf::$7)}
-	/*| IF  condition if_instr {If($2)::$3}*/
+	| IF condition THEN instr else_block ENDIF instr {If($2)::Then::($4@$5@EndIf::$7)}	
 	
+	| DO WHILE condition instr LOOP instr {Do::($4@Loop::DoWhile($3)::$6)}
+	| DO UNTIL condition instr LOOP instr {Do::($4@Loop::Until($3)::$6)}
 	
-	| WHILE condition instr {While($2)::$3}
-	| WEND instr {Wend::$2}
+	| DO instr LOOP WHILE condition instr {Do::($2@Loop::DoWhile($5)::$6)}
+	| DO instr LOOP UNTIL condition instr {Do::($2@Loop::Until($5)::$6)}
+	
+	| WHILE condition instr WEND instr {While($2)::($3@Wend::$5)}
+	
+	/*(* il peut ne pas y avoir de untilORwhile (voir doc. Do...Loop), à voir si on implémente ou pas (pas sûr que possible en C) *)*/
 
-	| DO UNTIL condition  instr {While($3)::$4}
-
-	/*| DO instr {Do::$2}*/ 
-	| UNTIL condition instr {Until($2)::$3}
-
-	| LOOP instr {Loop::$2}
-
-	| FOR IDENT EQ var_val TO borne_condition STEP math_signe var_val instr {For(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::$10}   
-	| FOR IDENT AS types EQ var_val TO borne_condition STEP math_signe var_val instr {For(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::$12}     
-	| NEXT IDENT instr {Next::$3}
+	| FOR IDENT EQ var_val TO borne_condition STEP math_signe var_val instr NEXT IDENT instr {For(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next::$13)}   
+	| FOR IDENT AS types EQ var_val TO borne_condition STEP math_signe var_val instr NEXT IDENT instr {For(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next::$15)}
+	
 	| PRINT IDENT instr {Print($2)::$3}
 	
 	| EOL instr {Empty::$2}
 	| {[Empty]}
-
 ;
-
-/*if_instr :
-	| THEN instr {Then::$2}
-	| ELSE instr {Else::$2}
-	| ELSEIF condition instr {ElseIf($2)::$3}
-	| ENDIF instr {EndIf::$2}
-;*/
 
 else_block :
 	| ELSEIF condition THEN instr else_block {ElseIf($2)::Then::($4@$5)}
@@ -170,10 +160,10 @@ operateur:
 ;
 
 condition:
-	|TRUE {Conditionelle(True,Empty,Empty)}
-	|FALSE {Conditionelle(False,Empty,Empty)}
-	|borne_condition operateur borne_condition {Conditionelle($1,$2,$3)}
-	|borne_condition {Conditionelle($1,Empty,Empty)}
+	|TRUE {Conditionnelle(True,Empty,Empty)}
+	|FALSE {Conditionnelle(False,Empty,Empty)}
+	|borne_condition operateur borne_condition {Conditionnelle($1,$2,$3)}
+	|borne_condition {Conditionnelle($1,Empty,Empty)}
 ;
 
 

@@ -53,12 +53,14 @@ rule basic = parse
 
 	| "If" {IF}
 	| "Then" {THEN}
+	| "Else" {ELSE}
+	| "ElseIf" {ELSEIF}
 	| "End If" {ENDIF}
 	| "Function" {FUNCTION}
 	| "End Function" {END_FUNC}
 	| "Sub" {SUB}
 	| "End Sub" {END_SUB}
-	| "While"{WHILE}
+	| "While" {WHILE}
 	| "Wend" {WEND}
 
 	| "For" {FOR}
@@ -67,8 +69,8 @@ rule basic = parse
 	
 	| "Until" {UNTIL}
 	| "Do" {DO}
-	| "Loop"{LOOP}
-	| "Next"{NEXT}
+	| "Loop" {LOOP}
+	| "Next" {NEXT}
 
 	| func_name as fn {FUNC_NAME fn}
 	| inclu as i {INCLUDE i}
@@ -82,11 +84,6 @@ rule basic = parse
 	| "Dim" {DIM}
 	| "As" {AS}
 	| const {CONST}
-	| "If" {IF}
-	| "Then"{THEN}
-	| "Else"{ELSE}
-	| "ElseIf"{ELSEIF}
-	| "End If"{ENDIF}
 	
 	| "True"{TRUE}
 	| "False"{FALSE}

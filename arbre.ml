@@ -24,7 +24,7 @@ type  t_operateur =
 		| Empty
 
 type t_condition=
-		| Conditionelle of t_terminal * t_operateur * t_terminal
+		| Conditionnelle of t_terminal * t_operateur * t_terminal
 		
 
 type t_math = 
@@ -53,6 +53,7 @@ type t_instr =
 		| Loop
 		
 		| Until of t_condition
+		| DoWhile of t_condition
 		| For of t_terminal * t_terminal * t_type * t_operateur * t_terminal * t_terminal * t_terminal *  t_terminal * t_math* t_terminal
 		| Next
 		
@@ -95,7 +96,7 @@ and  print_operateur  = function
 	| Empty -> ()
 
 and print_condition = function 
-	| Conditionelle(t_terma, t_ope ,t_termb) -> output_string oc ("("); print_terminal(t_terma);print_operateur(t_ope);print_terminal(t_termb); output_string oc (")");
+	| Conditionnelle(t_terma, t_ope ,t_termb) -> output_string oc ("("); print_terminal(t_terma);print_operateur(t_ope);print_terminal(t_termb); output_string oc (")");
 	
 and print_math = function 
 	| Minus -> output_string oc ("-")
@@ -116,16 +117,17 @@ let rec  print_instr structprog = match structprog with
 	| Else::tl-> indent:=!indent-1; indentation (); output_string oc("} else { \n"); print_instr tl
 	| EndIf::tl -> indent:=!indent-1; indentation (); output_string oc("}\n"); print_instr tl
 	
-	| While(cond)::tl -> output_string oc ("while ");print_condition(cond);output_string oc ("{ \n"); print_instr tl
-	| Wend::tl -> output_string oc("}\n"); print_instr tl
+	| While(cond)::tl -> indentation (); indent:=!indent+1; output_string oc ("while ");print_condition(cond);output_string oc ("{ \n"); print_instr tl
+	| Wend::tl -> indent:=!indent-1; indentation (); output_string oc("}\n"); print_instr tl
 	
-	| Do::tl -> output_string oc("Do {\n"); print_instr tl
-	| Until(cond)::tl -> output_string oc ("while ");print_condition(cond); output_string oc ("\n"); print_instr tl
-	| Loop::tl -> output_string oc ("} "); print_instr tl
+	| Do::tl -> indentation (); indent:=!indent+1; output_string oc("do {\n"); print_instr tl
+	| Until(cond)::tl -> output_string oc ("while ");print_condition(cond); output_string oc (";\n\n"); print_instr tl
+	| DoWhile(cond)::tl -> output_string oc ("while ");print_condition(cond);output_string oc (";\n\n"); print_instr tl
+	| Loop::tl -> indent:=!indent-1; indentation (); output_string oc ("} "); print_instr tl
 	
-	|For(t_a,t_b,typ,t_ope,t_d,t_e,t_f,t_g,math,t_i)::tl->output_string oc("for (");print_type(typ);print_terminal(t_a);print_operateur(t_ope);print_terminal(t_d);output_string oc (";");print_terminal(t_a);output_string oc (" < "); print_terminal(t_f);output_string oc (";");
+	|For(t_a,t_b,typ,t_ope,t_d,t_e,t_f,t_g,math,t_i)::tl-> indentation (); indent:=!indent+1; output_string oc("for (");print_type(typ);print_terminal(t_a);print_operateur(t_ope);print_terminal(t_d);output_string oc (";");print_terminal(t_a);output_string oc (" < "); print_terminal(t_f);output_string oc (";");
 	 print_terminal(t_a);print_math(math);output_string oc("=");print_terminal(t_i);output_string oc("){\n");print_instr tl;
-	|Next::tl -> (); print_instr tl;
+	|Next::tl -> indent:=!indent-1; indentation (); output_string oc ("}\n"); print_instr tl;
 
 	| Print(print)::tl-> indentation (); output_string oc ("printf(\""^print^"\");\n"); print_instr tl
 	| Empty::tl-> print_instr tl
