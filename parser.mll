@@ -30,6 +30,7 @@ let type_single = "Single"
 rule basic = parse
 	impr as ip {PRINT ip}
 	| ';' {SEMICOLON}
+	| ':' {COLON}
 	| ',' {COMMA}
 	| '\"' {DOUBLEQUOTE}
 	| '\\' {BS}

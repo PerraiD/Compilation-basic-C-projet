@@ -3,8 +3,8 @@
 
 	let x = {struct_fonc= []; struct_instr=[]; struct_import=[]}
 	let add_fonc a = x.struct_fonc <- x.struct_fonc@a
-	let add_import a = x.struct_import <-x.struct_import@a
-	let add_instr a = x.struct_instr <-x.struct_instr@a
+	let add_import a = x.struct_import <- x.struct_import@a
+	let add_instr a = x.struct_instr <- x.struct_instr@a
 
 	let rec ajout_fin(l,e) = match l with
 		| [] -> [e]
@@ -88,6 +88,7 @@
 
 /*(* signes *)*/
 %token SEMICOLON
+%token COLON
 %token COMMA
 %token DOUBLEQUOTE
 %token LPAREN
@@ -114,10 +115,15 @@ import :
 ;
 
 instr :
-	| DIM AS types IDENT enum_ident instr {DimMult(return_type($3), $4^$5)::$6}
-	| DIM IDENT AS types enum_ident instr {Dim(return_type($4), $2, $5)::$6}
+	/*| DIM AS types IDENT enum_ident instr {DimMult(return_type($3), $4^$5)::$6}
+	| DIM IDENT AS types enum_ident instr {Dim(return_type($4), $2, $5)::$6}*/
 	
-	| IF condition THEN instr else_block ENDIF instr {If($2)::Then::($4@$5@EndIf::$7)}	
+	| DIM AS types enum_identMult instr {DimMult($4, $3)::$5}
+	| DIM enum_ident instr {$2@$3}
+	
+	/*| IDENT EQ terminal COLON*/
+	
+	| IF condition THEN instr else_block ENDIF instr {If($2)::Then::($4@$5@EndIf::$7)}
 	
 	| DO WHILE condition instr LOOP instr {Do::($4@Loop::DoWhile($3)::$6)}
 	| DO UNTIL condition instr LOOP instr {Do::($4@Loop::Until($3)::$6)}
@@ -145,25 +151,30 @@ else_block :
 ;
 
 fonctions :
-	| SUB IDENT args fonc_instr END_SUB {Sub($2,$3)::($4@[EndSub])}
-	| FUNCTION IDENT args AS types fonc_instr RETURN terminal EOL END_FUNC {Function($2,return_type($5),$3)::($6@Return($8)::[EndFunc])}
+	| SUB IDENT args fonc_instr END_SUB {Sub($2)::($3@$4@[EndSub])}
+	| FUNCTION IDENT args AS types fonc_instr RETURN terminal EOL END_FUNC {Function($2,return_type($5))::($3@$6@Return($8)::[EndFunc])}
 	| DECLARE FUNCTION IDENT args AS types {[Empty]}
 ;
 
 args :
-	| LPAREN IDENT AS types enum_args RPAREN {"("^return_type($4)^$2^$5^")"}
-	| LPAREN RPAREN {"()"}
-	| {"()"}
+	| LPAREN enum_args RPAREN {$2}
+	| LPAREN RPAREN {DeclE::[Empty]}
+	| {DeclE::[Empty]}
 ;
 
 enum_args :
-	| COMMA IDENT AS types enum_args {return_type($4)^$2^", "^$5}
+	| IDENT AS types COMMA enum_args {Decl($1, $3)::$5}
+	| IDENT AS types {Declf($1, $3)::[Empty]}
+;
+
+enum_identMult :
+	| IDENT COMMA enum_identMult {$1::$3}
+	| IDENT {[$1]}
 ;
 
 enum_ident :
-	| COMMA IDENT AS types enum_ident {return_type($4)^$2^"; "^$5}
-	| COMMA IDENT enum_ident {", "^$2^$3}
-	| {""}
+	| IDENT AS types COMMA enum_ident {Decl($1, $3)::$5}
+	| IDENT AS types {Decl($1, $3)::[Empty]}
 ;
 
 fonc_instr :
