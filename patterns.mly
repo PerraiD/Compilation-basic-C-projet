@@ -210,8 +210,8 @@ condition :
 
 
 math_signe :
-	| PLUS{Minus}
-	| MINUS{Plus}
+	| PLUS{Plus}
+	| MINUS{Minus}
 ;
 
 borne_condition :
