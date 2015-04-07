@@ -129,19 +129,19 @@ let rec print_terminal t = match t with
 	
 and printf_terminal t = match t with 
 	| Ident(id) -> print_ident id hash_table;
-	| Double(v) -> output_string oc ("printf(\"%lf\", "^v^");");
-	| Integer(v) -> output_string oc ("printf(\"%d\", "^v^");");
-	| Char(v) -> output_string oc ("printf(\"%c\", "^v^");");
-	| String(v) -> output_string oc ("printf(\"%s\", "^v^");");
+	| Double(v) -> output_string oc ("printf(\"%lf\", "^v^");\n");
+	| Integer(v) -> output_string oc ("printf(\"%d\", "^v^");\n");
+	| Char(v) -> output_string oc ("printf(\"%c\", "^v^");\n");
+	| String(v) -> output_string oc ("printf(\"%s\", "^v^");\n");
 	| Empty -> ();
 	| _ -> ();
 	
 and printf_terminal_fonc t = match t with 
 	| Ident(id) -> print_ident id hash_table_fonc;
-	| Double(v) -> output_string oc ("printf(\"%lf\", "^v^");");
-	| Integer(v) -> output_string oc ("printf(\"%d\", "^v^");");
-	| Char(v) -> output_string oc ("printf(\"%c\", "^v^");");
-	| String(v) -> output_string oc ("printf(\"%s\", "^v^");");
+	| Double(v) -> output_string oc ("printf(\"%lf\", "^v^");\n");
+	| Integer(v) -> output_string oc ("printf(\"%d\", "^v^");\n");
+	| Char(v) -> output_string oc ("printf(\"%c\", "^v^");\n");
+	| String(v) -> output_string oc ("printf(\"%s\", "^v^");\n");
 	| Empty -> ();
 	| _ -> ();
 	

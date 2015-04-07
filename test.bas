@@ -1,0 +1,9 @@
+Print "cc"
+Sub Test
+	Print "la"
+End Sub
+Print "salut"
+Sub Test
+	Print "ici"
+End Sub
+Print "grr"

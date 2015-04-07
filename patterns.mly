@@ -2,9 +2,9 @@
 	open Arbre
 
 	let x = {struct_fonc= []; struct_instr=[]; struct_import=[]}
-	let add_fonc a = x.struct_fonc <- x.struct_fonc@a
-	let add_import a = x.struct_import <- x.struct_import@a
-	let add_instr a = x.struct_instr <- x.struct_instr@a
+	let add_fonc a = x.struct_fonc <- a@x.struct_fonc
+	let add_import a = x.struct_import <- a@x.struct_import
+	let add_instr a = x.struct_instr <- a@x.struct_instr
 
 	let rec ajout_fin(l,e) = match l with
 		| [] -> [e]
@@ -12,7 +12,6 @@
 %}
 
 %token EOF
-%token EOL
 
 /*(*var type*)*/
 %token <char> CHAR
@@ -114,10 +113,7 @@ import :
 	| INCLUDE {[Include($1)]}
 ;
 
-instr :
-	/*| DIM AS types IDENT enum_ident instr {DimMult(return_type($3), $4^$5)::$6}
-	| DIM IDENT AS types enum_ident instr {Dim(return_type($4), $2, $5)::$6}*/
-	
+instr :	
 	| DIM AS types enum_identMult instr {DimMult($4, $3)::$5}
 	| DIM enum_ident instr {$2@$3}
 	
@@ -140,7 +136,6 @@ instr :
 	
 	| PRINT terminal instr {Print($2)::$3}
 	
-	| EOL instr {Empty::$2}
 	| {[Empty]}
 ;
 
@@ -152,7 +147,7 @@ else_block :
 
 fonctions :
 	| SUB IDENT args fonc_instr END_SUB {Sub($2)::($3@$4@[EndSub])}
-	| FUNCTION IDENT args AS types fonc_instr RETURN terminal EOL END_FUNC {Function($2,return_type($5))::($3@$6@Return($8)::[EndFunc])}
+	| FUNCTION IDENT args AS types fonc_instr RETURN terminal END_FUNC {Function($2,return_type($5))::($3@$6@Return($8)::[EndFunc])}
 	| DECLARE FUNCTION IDENT args AS types {[Empty]}
 ;
 
@@ -179,7 +174,6 @@ enum_ident :
 
 fonc_instr :
 	| PRINT terminal fonc_instr {PrintFunc($2)::$3}
-	| EOL fonc_instr {Empty::$2}
 	| {[Empty]}
 ;
 
@@ -210,8 +204,8 @@ condition :
 
 
 math_signe :
-	| PLUS{Plus}
-	| MINUS{Minus}
+	| PLUS {Plus}
+	| MINUS {Minus}
 ;
 
 borne_condition :

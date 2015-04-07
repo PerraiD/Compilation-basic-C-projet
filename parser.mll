@@ -13,11 +13,11 @@
 let impr = "Print "
 let const = "Const"
 
-(*let func_name = ['a'-'z' 'A'-'Z']**)
 let inclu = "#include [\' <] ['a'-'z' 'A'-'Z' '_' '.']* [\' >]"
 let var_int = ('0'|['1'-'9']['0'-'9']*)
 let var_double =  ('0'|['1'-'9']['0'-'9']*)('.'['0'-'9']+)?
-let var_string = '\"'['a'-'z' 'A'-'Z' ' ' '0'-'9' '_' '\t''?' '!' ':' ',' '.' '%']*'\"'
+let var_string = '\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%' ' ']*'\"'
+let var_sub_string = ('\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']* (['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\\')* ['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\"')
 let ident = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 let b_type =  "Byte" | "Short" | "LongInt" | "UByte" | "UShort" | "UInteger" | "ULongInt" | "Integer Ptr" | "Byte Ptr" | "ZString Ptr"
 let type_string = "String"
@@ -25,13 +25,11 @@ let type_double = "Double"
 let type_integer = "Integer"
 let type_single = "Single"
 
-
 rule basic = parse
 	impr as ip {PRINT ip}
 	| ';' {SEMICOLON}
 	| ':' {COLON}
 	| ',' {COMMA}
-	| '\"' {DOUBLEQUOTE}
 	| '\\' {BS}
 	| '(' {LPAREN}
 	| ')' {RPAREN}
@@ -75,9 +73,7 @@ rule basic = parse
 	| "Loop" {LOOP}
 	| "Next" {NEXT}
 
-	(*| func_name as fn {FUNC_NAME fn}*)
 	| inclu as i {INCLUDE i}
-
 
 	| var_int as i {INT i}
 	| var_double as d {DOUBLE d}
@@ -96,11 +92,9 @@ rule basic = parse
 	| type_integer  {TYPE_INT}
 	| type_single {TYPE_CHAR}
 	
-
 	| ident as id {IDENT id}
-	
-	| '\n' {EOL}
 
 	| ' ' | '\t' | '\n' {basic lexbuf}
 	| _ as c {CHAR c}
 	| eof {EOF}
+
