@@ -40,11 +40,11 @@ rule basic = parse
 	| '/' {DIV}
 	| '{' {ACOLLEFT}
 	| '}' {ACOLRIGHT}
-	| '=' {EQ}
+	| '=' {AFFECT}
 	
 	| "<" {LT}
 	| ">" {GT}
-	| "=" {EQ}
+	| "==" {EQ}
 	| "!=" {NE}
 	| "<=" {LE}
 	| ">=" {GE}

@@ -20,9 +20,15 @@ Do Until n > 10
 	Loop Until k > 8
 Loop
 Sub Test (v As Integer, b As String)
+	v = 5: b="toto"
+	If v > 10 Then
+		Print "cc"
+	End If
 	Print "wewe"
 	Print b
 End Sub
+v = 5: k = 99
+a = "b"
 Print v
 While p < 4
 	Print v

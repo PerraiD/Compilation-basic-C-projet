@@ -38,6 +38,7 @@
 %token TYPE_DOUBLE
 %token TYPE_STRING
 %token TYPE_CHAR
+%token AFFECT
 
 /*(*Fonction*)*/
 %token DECLARE
@@ -117,7 +118,7 @@ instr :
 	| DIM AS types enum_identMult instr {DimMult($4, $3)::$5}
 	| DIM enum_ident instr {$2@$3}
 	
-	/*| IDENT EQ terminal COLON*/
+	| IDENT AFFECT terminal multAffect instr {Affect($1, $3)::($4@$5)}
 	
 	| IF condition THEN instr else_block ENDIF instr {If($2)::Then::($4@$5@EndIf::$7)}
 	
@@ -128,14 +129,17 @@ instr :
 	| DO instr LOOP UNTIL condition instr {Do::($2@Loop::Until($5)::$6)}
 	
 	| WHILE condition instr WEND instr {While($2)::($3@Wend::$5)}
-	
-	/*(* il peut ne pas y avoir de until/while (voir doc. Do...Loop), à voir si on implémente ou pas (pas sûr que possible en C) *)*/
 
-	| FOR IDENT EQ var_val TO borne_condition STEP math_signe var_val instr NEXT IDENT instr {For(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next::$13)}   
-	| FOR IDENT AS types EQ var_val TO borne_condition STEP math_signe var_val instr NEXT IDENT instr {For(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next::$15)}
+	| FOR IDENT AFFECT var_val TO terminal STEP math_signe var_val instr NEXT IDENT instr {For(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next::$13)}   
+	| FOR IDENT AS types AFFECT var_val TO terminal STEP math_signe var_val instr NEXT IDENT instr {For(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next::$15)}
 	
 	| PRINT terminal instr {Print($2)::$3}
 	
+	| {[Empty]}
+;
+
+multAffect :
+	| COLON IDENT AFFECT terminal multAffect {Affect($2, $4)::$5}
 	| {[Empty]}
 ;
 
@@ -173,7 +177,42 @@ enum_ident :
 ;
 
 fonc_instr :
-	| PRINT terminal fonc_instr {PrintFunc($2)::$3}
+	| DIM AS types enum_identMult fonc_instr {DimMult_fonc($4, $3)::$5}
+	| DIM enum_ident_fonc fonc_instr {$2@$3}
+	
+	| IDENT AFFECT terminal multAffect_fonc fonc_instr {Affect_fonc($1, $3)::($4@$5)}
+	
+	| IF condition THEN fonc_instr else_block_fonc ENDIF fonc_instr {If_fonc($2)::Then_fonc::($4@$5@EndIf_fonc::$7)}
+	
+	| DO WHILE condition fonc_instr LOOP fonc_instr {Do_fonc::($4@Loop_fonc::DoWhile_fonc($3)::$6)}
+	| DO UNTIL condition fonc_instr LOOP fonc_instr {Do_fonc::($4@Loop_fonc::Until_fonc($3)::$6)}
+	
+	| DO fonc_instr LOOP WHILE condition fonc_instr {Do_fonc::($2@Loop_fonc::DoWhile_fonc($5)::$6)}
+	| DO fonc_instr LOOP UNTIL condition fonc_instr {Do_fonc::($2@Loop_fonc::Until_fonc($5)::$6)}
+	
+	| WHILE condition fonc_instr WEND fonc_instr {While_fonc($2)::($3@Wend_fonc::$5)}
+
+	| FOR IDENT AFFECT var_val TO terminal STEP math_signe var_val fonc_instr NEXT IDENT fonc_instr {For_fonc(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next_fonc::$13)}   
+	| FOR IDENT AS types AFFECT var_val TO terminal STEP math_signe var_val fonc_instr NEXT IDENT fonc_instr {For_fonc(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next_fonc::$15)}
+	
+	| PRINT terminal fonc_instr {Print_fonc($2)::$3}
+	
+	| {[Empty]}
+;
+
+enum_ident_fonc :
+	| IDENT AS types COMMA enum_ident_fonc {Decl($1, $3)::$5}
+	| IDENT AS types {Decl($1, $3)::[Empty]}
+;
+
+multAffect_fonc :
+	| COLON IDENT AFFECT terminal multAffect_fonc {Affect_fonc($2, $4)::$5}
+	| {[Empty]}
+;
+
+else_block_fonc :
+	| ELSEIF condition THEN fonc_instr else_block_fonc {ElseIf_fonc($2)::Then_fonc::($4@$5)}
+	| ELSE fonc_instr {Else_fonc::$2}
 	| {[Empty]}
 ;
 
@@ -198,8 +237,8 @@ operateur :
 condition :
 	| TRUE {Conditionnelle(True,Empty,Empty)}
 	| FALSE {Conditionnelle(False,Empty,Empty)}
-	| borne_condition operateur borne_condition {Conditionnelle($1,$2,$3)}
-	| borne_condition {Conditionnelle($1,Empty,Empty)}
+	| terminal operateur terminal {Conditionnelle($1,$2,$3)}
+	| terminal {Conditionnelle($1,Empty,Empty)}
 ;
 
 
@@ -208,12 +247,12 @@ math_signe :
 	| MINUS {Minus}
 ;
 
-borne_condition :
+/*borne_condition :
 	| IDENT {Ident $1}
 	| INT {Integer $1}
 	| DOUBLE {Double $1}
 	| STRING {String $1}
-;
+;*/
 
 var_val :
 	| INT {Integer $1}

@@ -7,6 +7,9 @@ let includeprintf = ref false
 let hash_table = Hashtbl.create 100;;
 let hash_table_fonc = Hashtbl.create 100;;
 
+let incr v = v:=!v+1;;
+let decr v = v:=!v-1;;
+
 type t_decl = {
 	_name : string;
 	_type : string;
@@ -56,6 +59,7 @@ type  t_type =
 type t_instr =
 		| DimMult of string list * t_type
 		| Decl of string * t_type
+		| Affect of string * t_terminal
 		| Print of t_terminal
 		| If of t_condition
 		| ElseIf of t_condition
@@ -77,15 +81,35 @@ type t_instr =
 ;;
 
 type t_fonc =
-		| Decl of string * t_type
-		| Declf of string * t_type
-		| DeclE
 		| Sub of string
 		| EndSub
 		| Function of string * string
 		| Return of t_terminal
 		| EndFunc
-		| PrintFunc of t_terminal
+		
+		| DimMult_fonc of string list * t_type
+		| Decl of string * t_type
+		| Declf of string * t_type
+		| DeclE
+		| Affect_fonc of string * t_terminal
+		| Print_fonc of t_terminal
+		
+		| If_fonc of t_condition
+		| ElseIf_fonc of t_condition
+		| Then_fonc 
+		| Else_fonc	
+		| EndIf_fonc
+		
+		| While_fonc of t_condition
+		| Wend_fonc
+		| Do_fonc
+		| Loop_fonc
+		
+		| Until_fonc of t_condition
+		| DoWhile_fonc of t_condition
+		| For_fonc of t_terminal * t_terminal * t_type * t_operateur * t_terminal * t_terminal * t_terminal *  t_terminal * t_math* t_terminal
+		| Next_fonc
+		
 		| Empty
 ;;
 
@@ -186,46 +210,52 @@ let rec print_instr structprog = match structprog with
 							output_string oc ((return_type typ)^id^";\n"); 
 							print_instr tl;
 							
-	| If(cond)::tl -> 	indentation (); 
-						indent:=!indent+1; 
+	| Affect(id, v)::tl -> 	indentation();
+							output_string oc (id^" = ");
+							print_terminal v;
+							output_string oc (";\n");
+							print_instr tl;
+							
+	| If(cond)::tl -> 	indentation ();
+						incr(indent);
 						output_string oc ("if ");
-						print_condition(cond); 
+						print_condition(cond);
 						print_instr tl;
 						
-	| ElseIf(cond)::tl -> 	indent:=!indent-1; 
-							indentation (); 
-							indent:=!indent+1; 
+	| ElseIf(cond)::tl -> 	decr(indent);
+							indentation ();
+							incr(indent);
 							output_string oc ("}else if ");
-							print_condition(cond); 
+							print_condition(cond);
 							print_instr tl;
 							
 	| Then::tl -> 	output_string oc(" { \n"); 
 					print_instr tl;
 					
-	| Else::tl-> 	indent:=!indent-1; 
-					indentation (); 
-					output_string oc("} else { \n"); 
+	| Else::tl-> 	decr(indent);
+					indentation ();
+					output_string oc("} else { \n");
 					print_instr tl;
 					
-	| EndIf::tl -> 	indent:=!indent-1; 
-					indentation (); 
-					output_string oc("}\n"); 
+	| EndIf::tl -> 	decr(indent);
+					indentation ();
+					output_string oc("}\n");
 					print_instr tl;
 	
 	| While(cond)::tl -> 	indentation (); 
-							indent:=!indent+1; 
+							incr(indent);
 							output_string oc ("while ");
 							print_condition(cond);
 							output_string oc ("{ \n"); 
 							print_instr tl;
 							
-	| Wend::tl -> 	indent:=!indent-1; 
+	| Wend::tl -> 	decr(indent);
 					indentation (); 
 					output_string oc("}\n"); 
 					print_instr tl;
 	
 	| Do::tl -> 	indentation (); 
-					indent:=!indent+1; 
+					incr(indent);
 					output_string oc("do {\n"); 
 					print_instr tl;
 					
@@ -239,13 +269,13 @@ let rec print_instr structprog = match structprog with
 							output_string oc (";\n\n"); 
 							print_instr tl;
 							
-	| Loop::tl -> 	indent:=!indent-1; 
-					indentation (); 
-					output_string oc ("} "); 
+	| Loop::tl -> 	decr(indent);
+					indentation ();
+					output_string oc ("} ");
 					print_instr tl;
 	
 	| For(t_a,t_b,typ,t_ope,t_d,t_e,t_f,t_g,math,t_i)::tl -> 	indentation (); 
-																indent:=!indent+1; 
+																incr(indent); 
 																output_string oc("for (");
 																print_type(typ);
 																print_terminal(t_a);
@@ -263,7 +293,7 @@ let rec print_instr structprog = match structprog with
 																output_string oc("){\n");
 																print_instr tl;
 																
-	| Next::tl -> 	indent:=!indent-1; 
+	| Next::tl -> 	decr(indent);
 					indentation (); 
 					output_string oc ("}\n"); 
 					print_instr tl;
@@ -277,6 +307,11 @@ let rec print_instr structprog = match structprog with
 ;;
 
 let rec print_fonc structprog = match structprog with
+	| DimMult_fonc(vars, typ)::tl -> 	hasher(typ, vars); 
+										indentation_fonc (); 
+										output_string oc ((return_type typ)^(String.concat ", " vars)^";\n"); 
+								print_fonc tl;
+								
 	| Decl(id, typ)::tl -> 	Hashtbl.add hash_table_fonc id (return_type typ);
 							output_string oc ((return_type typ)^id^", ");
 							print_fonc tl;
@@ -287,19 +322,25 @@ let rec print_fonc structprog = match structprog with
 							
 	| DeclE::tl -> 	output_string oc (") {\n");
 					print_fonc tl;
+					
+	| Affect_fonc(id, v)::tl -> indentation_fonc ();
+								output_string oc (id^" = ");
+								print_terminal v;
+								output_string oc (";\n");
+								print_fonc tl;
 	
 	| Sub(nom)::tl -> 	indentation_fonc ();
-						indent_func:=!indent_func+1;
+						incr(indent_func);
 						output_string oc ("void "^nom^"(");
 						print_fonc tl;
 						
-	| EndSub::tl -> 	indent_func:=!indent_func-1;
+	| EndSub::tl -> 	decr(indent_func);
 						indentation_fonc ();
 						output_string oc ("}\n\n");
 						print_fonc tl;
 						
 	| Function(nom,type_retour)::tl -> 	indentation_fonc ();
-										indent_func:=!indent_func+1;
+										incr(indent_func);
 										output_string oc (type_retour^nom^"(");
 										print_fonc tl;
 										
@@ -309,14 +350,96 @@ let rec print_fonc structprog = match structprog with
 							output_string oc (";\n");
 							print_fonc tl;
 							
-	| EndFunc::tl -> 	indent_func:=!indent_func-1;
+	| EndFunc::tl -> 	decr(indent_func);
 						indentation_fonc ();
 						output_string oc ("}\n\n");
 						print_fonc tl;
 						
-	| PrintFunc(print)::tl -> 	indentation_fonc ();
+	| Print_fonc(print)::tl -> 	indentation_fonc ();
 								printf_terminal_fonc(print);
 								print_fonc tl;
+								
+	| If_fonc(cond)::tl -> 	indentation_fonc (); 
+							incr(indent_func);
+							output_string oc ("if ");
+							print_condition(cond); 
+							print_fonc tl;
+						
+	| ElseIf_fonc(cond)::tl -> 	decr(indent_func);
+								indentation_fonc (); 
+								incr(indent_func);
+								output_string oc ("}else if ");
+								print_condition(cond); 
+								print_fonc tl;
+							
+	| Then_fonc::tl -> 	output_string oc(" { \n"); 
+						print_fonc tl;
+					
+	| Else_fonc::tl-> 	decr(indent_func);
+						indentation_fonc (); 
+						output_string oc("} else { \n"); 
+						print_fonc tl;
+					
+	| EndIf_fonc::tl -> decr(indent_func);
+						indentation_fonc (); 
+						output_string oc("}\n"); 
+						print_fonc tl;
+	
+	| While_fonc(cond)::tl -> 	indentation_fonc (); 
+								incr(indent_func);
+								output_string oc ("while ");
+								print_condition(cond);
+								output_string oc ("{ \n"); 
+								print_fonc tl;
+							
+	| Wend_fonc::tl -> 	decr(indent_func);
+						indentation_fonc (); 
+						output_string oc("}\n"); 
+						print_fonc tl;
+	
+	| Do_fonc::tl -> 	indentation_fonc (); 
+						incr(indent_func);
+						output_string oc("do {\n"); 
+						print_fonc tl;
+					
+	| Until_fonc(cond)::tl -> 	output_string oc ("while ");
+								print_condition(cond); 
+								output_string oc (";\n\n"); 
+								print_fonc tl;
+							
+	| DoWhile_fonc(cond)::tl -> output_string oc ("while ");
+								print_condition(cond);
+								output_string oc (";\n\n"); 
+								print_fonc tl;
+							
+	| Loop_fonc::tl -> 	decr(indent_func);
+						indentation_fonc (); 
+						output_string oc ("} "); 
+						print_fonc tl;
+	
+	| For_fonc(t_a,t_b,typ,t_ope,t_d,t_e,t_f,t_g,math,t_i)::tl -> 	indentation_fonc (); 
+																	incr(indent_func);
+																	output_string oc("for (");
+																	print_type(typ);
+																	print_terminal(t_a);
+																	print_operateur(t_ope);
+																	print_terminal(t_d);
+																	output_string oc (";");
+																	print_terminal(t_a);
+																	output_string oc (" < "); 
+																	print_terminal(t_f);
+																	output_string oc (";");
+																	print_terminal(t_a);
+																	print_math(math);
+																	output_string oc("=");
+																	print_terminal(t_i);
+																	output_string oc("){\n");
+																	print_fonc tl;
+																
+	| Next_fonc::tl -> 	decr(indent_func);
+						indentation_fonc (); 
+						output_string oc ("}\n"); 
+						print_fonc tl;
 								
 	| Empty::tl -> print_fonc tl;
 	| [] -> ();
