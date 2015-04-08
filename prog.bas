@@ -25,7 +25,7 @@ Loop Until n > 10
 Sub Test (v As Integer, b As String)
 	v = 5: b="toto"
 	If v > 10 Then
-		Print "cc"
+		Print "cc je vais par là ? !,; ^$ *ù A 51 vc / - é 		\ \""
 	End If
 	/' quelle belle fonction ! 
 		test
