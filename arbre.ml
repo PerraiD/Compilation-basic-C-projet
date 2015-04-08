@@ -377,7 +377,7 @@ let rec print_fonc structprog = match structprog with
 	
 	| Sub(nom)::tl -> 	indentation_fonc ();
 						incr(indent_func);
-						output_string oc ("void "^nom^"(");
+						output_string oc ("\nvoid "^nom^"(");
 						print_fonc tl;
 						
 	| EndSub::tl -> 	decr(indent_func);
@@ -389,7 +389,7 @@ let rec print_fonc structprog = match structprog with
 										nameFunc := nom;
 										indentation_fonc ();
 										incr(indent_func);
-										output_string oc (type_retour^nom^"(");
+										output_string oc ("\n"^type_retour^nom^"(");
 										print_fonc tl;
 										
 	| Return(retour)::tl -> verifType !typeFunc (return_terminal retour);
@@ -491,8 +491,8 @@ let rec print_fonc structprog = match structprog with
 ;;
 	
 let rec print_import structprog = match structprog with
-	| Include(print)::tl -> output_string oc print; print_import tl;
-	| [] -> if (!includeprintf=true) then output_string oc ("#include <stdio.h>\n\n");
+	| Include(print)::tl -> output_string oc (print^"\n"); print_import tl;
+	| [] -> if (!includeprintf=true) then output_string oc ("#include <stdio.h>\n");
 ;;
 
 let rec lookingForIncludes structprog = match structprog with

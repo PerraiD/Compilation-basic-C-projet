@@ -1,3 +1,6 @@
+#include <math.h>
+#include "math.h"
+
 Dim As Integer a, g, w, k, v
 If a > 5 Then
 	Print a
