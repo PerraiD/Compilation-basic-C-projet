@@ -12,7 +12,7 @@ End If
 Print w
 Function TestFunc (A As Double) As String
 	Print A
-	Return A
+	Return "salut"
 End Function
 Do
 	Do

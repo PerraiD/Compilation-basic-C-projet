@@ -158,6 +158,20 @@ let return_terminal = function
 	| Empty -> "";
 ;;
 
+let return_type_terminal = function
+	| Ident(id) -> id;
+	| Double(v) -> "double ";
+	| Integer(v) -> "int ";
+	| Char(v) -> "char ";
+	| String(v) -> "char* ";
+	| True -> "true";
+	| False -> "false";
+	| As -> "";
+	| To -> "";
+	| Step -> "";
+	| Empty -> "";
+;;
+
 let return_math = function 
 	| Minus -> "-";
 	| Plus -> "+";
@@ -171,9 +185,21 @@ let rec hasher = function
 	| (t, []) -> ();
 ;;
 
-let verifType typ retour = match Hashtbl.find hash_table_fonc retour with
+let verifTypeIdent typ retour = match Hashtbl.find hash_table_fonc retour with
 	| x when x = typ -> ();
 	| _ -> print_string("[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+;;
+
+let verifType typ retour = match retour with
+	| "int " when "int " = typ -> ();
+	| "int " when "int " <> typ -> print_string("1[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "double " when "double " = typ -> ();
+	| "double " when "double " <> typ -> print_string("2[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "char " when "char " = typ -> ();
+	| "char " when "char " <> typ -> print_string("3[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "char* " when "char* " = typ -> ();
+	| "char* " when "char* " <> typ -> print_string("4[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| _ -> verifTypeIdent typ retour;
 ;;
 
 let rec print_terminal t = match t with 
@@ -392,7 +418,7 @@ let rec print_fonc structprog = match structprog with
 										output_string oc ("\n"^type_retour^nom^"(");
 										print_fonc tl;
 										
-	| Return(retour)::tl -> verifType !typeFunc (return_terminal retour);
+	| Return(retour)::tl -> verifType !typeFunc (return_type_terminal retour);
 							indentation_fonc ();
 							output_string oc ("return ");
 							print_terminal(retour);
