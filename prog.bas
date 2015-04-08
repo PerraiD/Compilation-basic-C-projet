@@ -36,3 +36,5 @@ Wend
 For i As Single = 3 To 0 Step -0.5
 	Print "glagla"
 Next i
+'com1
+/' com2 '/

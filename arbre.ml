@@ -61,6 +61,9 @@ type  t_type =
 ;;
 
 type t_instr =
+		| SCom of string
+		| MCom of string
+	
 		| DimMult of string list * t_type
 		| Decl of string * t_type
 		| Affect of string * string
@@ -232,8 +235,16 @@ and print_type = function
 ;;
 
 let rec print_instr structprog = match structprog with
-	| DimMult(vars, typ)::tl -> hasher(typ, vars); 
-								indentation (); 
+	| SCom(com)::tl -> 	indentation ();
+						output_string oc ("// "^(String.sub com 1 ((String.length com)-1)));
+						print_instr tl;
+	
+	| MCom(com)::tl -> 	indentation ();
+						output_string oc ("/* "^(String.sub com 2 ((String.length com)-4))^"*/");
+						print_instr tl;
+	
+	| DimMult(vars, typ)::tl -> hasher(typ, vars);
+								indentation ();
 								output_string oc ((return_type typ)^(String.concat ", " vars)^";\n"); 
 								print_instr tl;
 								
@@ -265,6 +276,7 @@ let rec print_instr structprog = match structprog with
 	| Else::tl-> 	decr(indent);
 					indentation ();
 					output_string oc("} else { \n");
+					incr(indent);
 					print_instr tl;
 					
 	| EndIf::tl -> 	decr(indent);
@@ -404,6 +416,7 @@ let rec print_fonc structprog = match structprog with
 	| Else_fonc::tl-> 	decr(indent_func);
 						indentation_fonc (); 
 						output_string oc("} else { \n"); 
+						incr(indent);
 						print_fonc tl;
 					
 	| EndIf_fonc::tl -> decr(indent_func);

@@ -20,3 +20,4 @@ Do
 		Print "bla"
 	Loop Until k > 8
 Loop Until n > 10
+'com1

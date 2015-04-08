@@ -13,13 +13,13 @@
 let impr = "Print "
 let const = "Const"
 
-let inclu = "#include [\' <] ['a'-'z' 'A'-'Z' '_' '.']* [\' >]"
+let com = '\'' ['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%' ' ' '\'']* '\n'
+let coms = "/\'" ['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%' ' ' '\'' '\n']* "\'/"
+let inclu = "#include" ['\'' '<'] ['a'-'z' 'A'-'Z' '_' '.']* ['\'' '>']
 let var_int = ('0'|['1'-'9']['0'-'9']*)
 let var_double =  ('0'|['1'-'9']['0'-'9']*)('.'['0'-'9']+)?
-let var_string = '\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%' ' ']*'\"'
-let var_sub_string = ('\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']* (['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\\')* ['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%']*'\"')
+let var_string = '\"'['a'-'z' 'A'-'Z' '0'-'9' '_' '?' '!' ':' ',' '.' '%' ' ' '\'']*'\"'
 let ident = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
-let b_type =  "Byte" | "Short" | "LongInt" | "UByte" | "UShort" | "UInteger" | "ULongInt" | "Integer Ptr" | "Byte Ptr" | "ZString Ptr"
 let type_string = "String"
 let type_double = "Double"
 let type_integer = "Integer"
@@ -73,11 +73,13 @@ rule basic = parse
 	| "Loop" {LOOP}
 	| "Next" {NEXT}
 
+	| com as c {LCOM c}
+	| coms as c {MCOM c}
+	
 	| inclu as i {INCLUDE i}
 
 	| var_int as i {INT i}
 	| var_double as d {DOUBLE d}
-	(*| var_sub_string as sstr {SUB_STRING sstr}*)
 	| var_string as str {STRING str}
 	
 	| "Dim" {DIM}
@@ -94,8 +96,7 @@ rule basic = parse
 	
 	| ident as id {IDENT id}
 	
-	| '\n' {incr_line lexbuf ; basic lexbuf}
+	| '\n' {incr_line lexbuf; basic lexbuf}
 	| ' ' | '\t' | '\r' {basic lexbuf}
 	| _ as c {CHAR c}
 	| eof {EOF}
-

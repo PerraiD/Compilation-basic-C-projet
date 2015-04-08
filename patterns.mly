@@ -24,6 +24,10 @@
 
 %left BS
 
+/*(*COMMENTAIRES*)*/
+%token <string> LCOM
+%token <string> MCOM
+
 /*(* CONDITION *)*/
 %token ACOLLEFT
 %token ACOLRIGHT
@@ -114,7 +118,10 @@ import :
 	| INCLUDE {[Include($1)]}
 ;
 
-instr :	
+instr :
+	| instr LCOM {$1@(SCom($2)::[Empty])}
+	| instr MCOM {$1@(MCom($2)::[Empty])}
+	
 	| instr DIM AS types enum_identMult {$1@(DimMult($5, $4)::[Empty])}
 	| instr DIM enum_ident {$1@$3}
 	| DIM AS types enum_identMult {DimMult($4, $3)::[Empty]}
@@ -159,9 +166,14 @@ multAffect :
 ;
 
 else_block :
-	| ELSEIF condition THEN instr else_block {ElseIf($2)::Then::($4@$5)}
+	| ELSEIF condition THEN contenu else_suite {ElseIf($2)::Then::($4@$5)}
 	| ELSE instr {Else::$2}
 	| {[Empty]}
+;
+
+else_suite :
+	| ELSEIF condition THEN contenu else_suite {ElseIf($2)::Then::($4@$5)}
+	| {Else::[Empty]}
 ;
 
 fonctions :
@@ -200,24 +212,24 @@ fonc_instr :
 	| fonc_instr IDENT AFFECT operation multAffect_fonc {$1@(Affect_fonc($2, $4)::$5)}
 	| IDENT AFFECT operation multAffect_fonc {Affect_fonc($1, $3)::($4@[Empty])}
 	
-	| fonc_instr IF condition THEN fonc_instr else_block_fonc ENDIF {$1@(If_fonc($3)::Then_fonc::($5@$6@[EndIf_fonc]))}
-	| IF condition THEN fonc_instr else_block_fonc ENDIF {If_fonc($2)::Then_fonc::($4@$5@EndIf_fonc::[Empty])}
+	| fonc_instr IF condition THEN contenu_fonc else_block_fonc ENDIF {$1@(If_fonc($3)::Then_fonc::($5@$6@[EndIf_fonc]))}
+	| IF condition THEN contenu_fonc else_block_fonc ENDIF {If_fonc($2)::Then_fonc::($4@$5@EndIf_fonc::[Empty])}
 	/*
-	| fonc_instr DO WHILE condition fonc_instr LOOP {$1@(Do_fonc::($4@Loop_fonc::DoWhile_fonc($3)::[Empty]))}
-	| fonc_instr DO UNTIL condition fonc_instr LOOP {$1@(Do_fonc::($4@Loop_fonc::DoWhile_fonc($3)::[Empty]))}
+	| fonc_instr DO WHILE condition contenu_fonc LOOP {$1@(Do_fonc::($4@Loop_fonc::DoWhile_fonc($3)::[Empty]))}
+	| fonc_instr DO UNTIL condition contenu_fonc LOOP {$1@(Do_fonc::($4@Loop_fonc::DoWhile_fonc($3)::[Empty]))}
 	*/
-	| fonc_instr DO fonc_instr LOOP WHILE condition {$1@(Do_fonc::($3@Loop_fonc::DoWhile_fonc($6)::[Empty]))}
-	| fonc_instr DO fonc_instr LOOP UNTIL condition {$1@(Do_fonc::($3@Loop_fonc::DoWhile_fonc($6)::[Empty]))}
-	| DO fonc_instr LOOP WHILE condition {Do_fonc::($2@Loop_fonc::DoWhile_fonc($5)::[Empty])}
-	| DO fonc_instr LOOP UNTIL condition {Do_fonc::($2@Loop_fonc::DoWhile_fonc($5)::[Empty])}
+	| fonc_instr DO contenu_fonc LOOP WHILE condition {$1@(Do_fonc::($3@Loop_fonc::DoWhile_fonc($6)::[Empty]))}
+	| fonc_instr DO contenu_fonc LOOP UNTIL condition {$1@(Do_fonc::($3@Loop_fonc::DoWhile_fonc($6)::[Empty]))}
+	| DO contenu_fonc LOOP WHILE condition {Do_fonc::($2@Loop_fonc::DoWhile_fonc($5)::[Empty])}
+	| DO contenu_fonc LOOP UNTIL condition {Do_fonc::($2@Loop_fonc::DoWhile_fonc($5)::[Empty])}
 	
-	| fonc_instr WHILE condition fonc_instr WEND {$1@(While_fonc($3)::($4@[Wend_fonc]))}
-	| WHILE condition fonc_instr WEND {While_fonc($2)::($3@Wend_fonc::[Empty])}
+	| fonc_instr WHILE condition contenu_fonc WEND {$1@(While_fonc($3)::($4@[Wend_fonc]))}
+	| WHILE condition contenu_fonc WEND {While_fonc($2)::($3@Wend_fonc::[Empty])}
 
-	| fonc_instr FOR IDENT AFFECT var_val TO borne_condition STEP math_signe var_val fonc_instr NEXT IDENT {$1@(For_fonc(Ident $3,Empty,Empty,Equal,$5,To,$7,Step,$9,$10)::($11@[Next_fonc]))}   
-	| fonc_instr FOR IDENT AS types AFFECT var_val TO borne_condition STEP math_signe var_val fonc_instr NEXT IDENT {$1@(For_fonc(Ident $3,As,$5,Equal,$7,To,$9,Step,$11,$12)::($13@[Next_fonc]))}
-	| FOR IDENT AFFECT var_val TO borne_condition STEP math_signe var_val fonc_instr NEXT IDENT {For_fonc(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next_fonc::[Empty])}   
-	| FOR IDENT AS types AFFECT var_val TO borne_condition STEP math_signe var_val fonc_instr NEXT IDENT {For_fonc(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next_fonc::[Empty])}
+	| fonc_instr FOR IDENT AFFECT var_val TO borne_condition STEP math_signe var_val contenu_fonc NEXT IDENT {$1@(For_fonc(Ident $3,Empty,Empty,Equal,$5,To,$7,Step,$9,$10)::($11@[Next_fonc]))}   
+	| fonc_instr FOR IDENT AS types AFFECT var_val TO borne_condition STEP math_signe var_val contenu_fonc NEXT IDENT {$1@(For_fonc(Ident $3,As,$5,Equal,$7,To,$9,Step,$11,$12)::($13@[Next_fonc]))}
+	| FOR IDENT AFFECT var_val TO borne_condition STEP math_signe var_val contenu_fonc NEXT IDENT {For_fonc(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next_fonc::[Empty])}   
+	| FOR IDENT AS types AFFECT var_val TO borne_condition STEP math_signe var_val contenu_fonc NEXT IDENT {For_fonc(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next_fonc::[Empty])}
 	
 	| fonc_instr PRINT terminal {$1@(Print_fonc($3)::[Empty])}
 	| PRINT terminal {Print_fonc($2)::[Empty]}
@@ -241,9 +253,14 @@ multAffect_fonc :
 ;
 
 else_block_fonc :
-	| ELSEIF condition THEN fonc_instr else_block_fonc {ElseIf_fonc($2)::Then_fonc::($4@$5)}
+	| ELSEIF condition THEN contenu_fonc else_suite_fonc {ElseIf_fonc($2)::Then_fonc::($4@$5)}
 	| ELSE fonc_instr {Else_fonc::$2}
 	| {[Empty]}
+;
+
+else_suite_fonc :
+	| ELSEIF condition THEN contenu_fonc else_suite_fonc {ElseIf_fonc($2)::Then_fonc::($4@$5)}
+	| {Else_fonc::[Empty]}
 ;
 
 operation :
