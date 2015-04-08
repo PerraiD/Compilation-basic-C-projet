@@ -24,6 +24,9 @@ Sub Test (v As Integer, b As String)
 	If v > 10 Then
 		Print "cc"
 	End If
+	/' quelle belle fonction ! 
+		test
+	'/
 	Print "wewe"
 	Print b
 End Sub
@@ -37,4 +40,7 @@ For i As Single = 3 To 0 Step -0.5
 	Print "glagla"
 Next i
 'com1
-/' com2 '/
+/' com2 /''hjhjvg '/
+Print "la"
+/' com3 bla b/ 'la la '/
+Print "ici"

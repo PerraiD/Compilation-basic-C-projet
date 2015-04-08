@@ -93,6 +93,9 @@ type t_fonc =
 		| Return of t_terminal
 		| EndFunc
 		
+		| SCom_fonc of string
+		| MCom_fonc of string
+		
 		| DimMult_fonc of string list * t_type
 		| Decl of string * t_type
 		| Declf of string * t_type
@@ -236,11 +239,11 @@ and print_type = function
 
 let rec print_instr structprog = match structprog with
 	| SCom(com)::tl -> 	indentation ();
-						output_string oc ("// "^(String.sub com 1 ((String.length com)-1)));
+						output_string oc ("// "^(String.sub com 1 ((String.length com)-1))^"\n");
 						print_instr tl;
 	
 	| MCom(com)::tl -> 	indentation ();
-						output_string oc ("/* "^(String.sub com 2 ((String.length com)-4))^"*/");
+						output_string oc ("/* "^(String.sub com 2 ((String.length com)-4))^"*/\n");
 						print_instr tl;
 	
 	| DimMult(vars, typ)::tl -> hasher(typ, vars);
@@ -344,6 +347,14 @@ let rec print_instr structprog = match structprog with
 ;;
 
 let rec print_fonc structprog = match structprog with
+	| SCom_fonc(com)::tl -> indentation_fonc ();
+							output_string oc ("// "^(String.sub com 1 ((String.length com)-1))^"\n");
+							print_fonc tl;
+	
+	| MCom_fonc(com)::tl -> indentation_fonc ();
+							output_string oc ("/* "^(String.sub com 2 ((String.length com)-4))^"*/\n");
+							print_fonc tl;
+						
 	| DimMult_fonc(vars, typ)::tl -> 	hasher(typ, vars); 
 										indentation_fonc (); 
 										output_string oc ((return_type typ)^(String.concat ", " vars)^";\n"); 

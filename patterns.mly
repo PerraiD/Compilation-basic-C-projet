@@ -205,7 +205,17 @@ enum_ident :
 	| IDENT AS types {Decl($1, $3)::[Empty]}
 ;
 
+contenu_fonc :
+	| fonc_instr {$1}
+	| {[Empty]}
+;
+
 fonc_instr :
+	| fonc_instr LCOM {$1@(SCom_fonc($2)::[Empty])}
+	| LCOM {SCom_fonc($1)::[Empty]}
+	| fonc_instr MCOM {$1@(MCom_fonc($2)::[Empty])}
+	| MCOM {MCom_fonc($1)::[Empty]}
+
 	| fonc_instr DIM AS types enum_identMult {$1@(DimMult_fonc($5, $4)::[Empty])}
 	| fonc_instr DIM enum_ident_fonc {$1@$3}
 	| DIM AS types enum_identMult {DimMult_fonc($4, $3)::[Empty]}
@@ -237,11 +247,6 @@ fonc_instr :
 	| PRINT terminal {Print_fonc($2)::[Empty]}
 	
 	/*| {[Empty]}*/
-;
-
-contenu_fonc :
-	| fonc_instr {$1}
-	| {[Empty]}
 ;
 
 enum_ident_fonc :
