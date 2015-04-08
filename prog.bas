@@ -11,14 +11,14 @@ Function TestFunc (A As Double) As String
 	Print A
 	Return A
 End Function
-Do Until n > 10
-	Do While n < 5
+Do
+	Do
 		Print "cc"
-	Loop
+	Loop While n < 5
 	Do
 		Print k
 	Loop Until k > 8
-Loop
+Loop Until n > 10
 Sub Test (v As Integer, b As String)
 	v = 5: b="toto"
 	If v > 10 Then
@@ -27,7 +27,7 @@ Sub Test (v As Integer, b As String)
 	Print "wewe"
 	Print b
 End Sub
-v = 5: k = 99
+v = 5*4/5+3: k = 99
 a = "b"
 Print v
 While p < 4

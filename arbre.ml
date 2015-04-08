@@ -3,6 +3,8 @@ let oc = open_out "prog.c"
 let indent = ref 0
 let indent_func = ref 0
 let includeprintf = ref false
+let nameFunc = ref ""
+let typeFunc = ref ""
 
 let hash_table = Hashtbl.create 100;;
 let hash_table_fonc = Hashtbl.create 100;;
@@ -46,6 +48,8 @@ type t_condition=
 type t_math = 
 		| Minus
 		| Plus
+		| Mul
+		| Div
 ;;
 
 type  t_type = 
@@ -59,7 +63,7 @@ type  t_type =
 type t_instr =
 		| DimMult of string list * t_type
 		| Decl of string * t_type
-		| Affect of string * t_terminal
+		| Affect of string * string
 		| Print of t_terminal
 		| If of t_condition
 		| ElseIf of t_condition
@@ -72,7 +76,6 @@ type t_instr =
 		| Do
 		| Loop
 		
-		| Until of t_condition
 		| DoWhile of t_condition
 		| For of t_terminal * t_terminal * t_type * t_operateur * t_terminal * t_terminal * t_terminal *  t_terminal * t_math* t_terminal
 		| Next
@@ -91,7 +94,7 @@ type t_fonc =
 		| Decl of string * t_type
 		| Declf of string * t_type
 		| DeclE
-		| Affect_fonc of string * t_terminal
+		| Affect_fonc of string * string
 		| Print_fonc of t_terminal
 		
 		| If_fonc of t_condition
@@ -105,7 +108,6 @@ type t_fonc =
 		| Do_fonc
 		| Loop_fonc
 		
-		| Until_fonc of t_condition
 		| DoWhile_fonc of t_condition
 		| For_fonc of t_terminal * t_terminal * t_type * t_operateur * t_terminal * t_terminal * t_terminal *  t_terminal * t_math* t_terminal
 		| Next_fonc
@@ -136,10 +138,36 @@ let return_type = function
 	| Empty -> "";
 ;;
 
+let return_terminal = function
+	| Ident(id) -> id;
+	| Double(v) -> v;
+	| Integer(v) -> v;
+	| Char(v) -> v;
+	| String(v) -> v;
+	| True -> "true";
+	| False -> "false";
+	| As -> "";
+	| To -> "";
+	| Step -> "";
+	| Empty -> "";
+;;
+
+let return_math = function 
+	| Minus -> "-";
+	| Plus -> "+";
+	| Mul -> "*";
+	| Div -> "/";
+;;
+
 let rec hasher = function
 	| (t, hd::[]) -> Hashtbl.add hash_table hd (return_type t);
 	| (t, hd::tl) -> Hashtbl.add hash_table hd (return_type t); hasher(t, tl);
 	| (t, []) -> ();
+;;
+
+let verifType typ retour = match Hashtbl.find hash_table_fonc retour with
+	| x when x = typ -> ();
+	| _ -> print_string("[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
 ;;
 
 let rec print_terminal t = match t with 
@@ -148,6 +176,8 @@ let rec print_terminal t = match t with
 	| Integer(v) -> output_string oc (v);
 	| Char(v) -> output_string oc (v);
 	| String(v) -> output_string oc (v);
+	| True -> output_string oc ("true");
+	| False -> output_string oc ("false");
 	| Empty -> ();
 	| _ -> ();
 	
@@ -178,7 +208,7 @@ and print_ident id hash = match Hashtbl.find hash id with
 and  print_operateur = function
 	| Lesser -> output_string oc("<");
 	| Greater ->  output_string oc(">");
-	| Equal -> output_string oc("=");
+	| Equal -> output_string oc("==");
 	| Notequal -> output_string oc("!=");
 	| Lessequal ->  output_string oc("<=");
 	| Greaterequal -> output_string oc(">=");
@@ -190,6 +220,8 @@ and print_condition = function
 and print_math = function 
 	| Minus -> output_string oc ("-");
 	| Plus -> output_string oc ("+");
+	| Mul -> output_string oc ("*");
+	| Div -> output_string oc ("/");
 
 and print_type = function 
 	| Tint(v) -> output_string oc (v);
@@ -211,9 +243,7 @@ let rec print_instr structprog = match structprog with
 							print_instr tl;
 							
 	| Affect(id, v)::tl -> 	indentation();
-							output_string oc (id^" = ");
-							print_terminal v;
-							output_string oc (";\n");
+							output_string oc (id^" = "^v^";\n");
 							print_instr tl;
 							
 	| If(cond)::tl -> 	indentation ();
@@ -258,11 +288,6 @@ let rec print_instr structprog = match structprog with
 					incr(indent);
 					output_string oc("do {\n"); 
 					print_instr tl;
-					
-	| Until(cond)::tl -> 	output_string oc ("while ");
-							print_condition(cond); 
-							output_string oc (";\n\n"); 
-							print_instr tl;
 							
 	| DoWhile(cond)::tl -> 	output_string oc ("while ");
 							print_condition(cond);
@@ -310,11 +335,11 @@ let rec print_fonc structprog = match structprog with
 	| DimMult_fonc(vars, typ)::tl -> 	hasher(typ, vars); 
 										indentation_fonc (); 
 										output_string oc ((return_type typ)^(String.concat ", " vars)^";\n"); 
-								print_fonc tl;
+										print_fonc tl;
 								
-	| Decl(id, typ)::tl -> 	Hashtbl.add hash_table_fonc id (return_type typ);
-							output_string oc ((return_type typ)^id^", ");
-							print_fonc tl;
+	| Decl(id, typ)::tl -> Hashtbl.add hash_table_fonc id (return_type typ);
+								output_string oc ((return_type typ)^id^", ");
+								print_fonc tl;
 							
 	| Declf(id, typ)::tl -> Hashtbl.add hash_table_fonc id (return_type typ);
 							output_string oc ((return_type typ)^id^") {\n");
@@ -324,9 +349,7 @@ let rec print_fonc structprog = match structprog with
 					print_fonc tl;
 					
 	| Affect_fonc(id, v)::tl -> indentation_fonc ();
-								output_string oc (id^" = ");
-								print_terminal v;
-								output_string oc (";\n");
+								output_string oc (id^" = "^v^";\n");
 								print_fonc tl;
 	
 	| Sub(nom)::tl -> 	indentation_fonc ();
@@ -339,12 +362,15 @@ let rec print_fonc structprog = match structprog with
 						output_string oc ("}\n\n");
 						print_fonc tl;
 						
-	| Function(nom,type_retour)::tl -> 	indentation_fonc ();
+	| Function(nom,type_retour)::tl -> 	typeFunc := type_retour;
+										nameFunc := nom;
+										indentation_fonc ();
 										incr(indent_func);
 										output_string oc (type_retour^nom^"(");
 										print_fonc tl;
 										
-	| Return(retour)::tl -> indentation_fonc ();
+	| Return(retour)::tl -> verifType !typeFunc (return_terminal retour);
+							indentation_fonc ();
 							output_string oc ("return ");
 							print_terminal(retour);
 							output_string oc (";\n");
@@ -401,11 +427,6 @@ let rec print_fonc structprog = match structprog with
 						incr(indent_func);
 						output_string oc("do {\n"); 
 						print_fonc tl;
-					
-	| Until_fonc(cond)::tl -> 	output_string oc ("while ");
-								print_condition(cond); 
-								output_string oc (";\n\n"); 
-								print_fonc tl;
 							
 	| DoWhile_fonc(cond)::tl -> output_string oc ("while ");
 								print_condition(cond);

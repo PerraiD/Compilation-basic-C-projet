@@ -2,11 +2,11 @@
 	open Patterns
 	open Lexing
 
-	type arbuste_exception = string * Lexing.position
-	exception ArbusteError of arbuste_exception
-	let error message pos = raise (ArbusteError (message, pos))
-	let print (m,p) =
-	Printf.eprintf "Error line %d character %d: %s\n" p.pos_lnum (p.pos_bol + 1) m
+	(** Increments the lexing buffer line number counter.*)
+	let incr_line lexbuf =
+		let pos = lexbuf.lex_curr_p in
+		lexbuf.lex_curr_p <-
+			{pos with pos_lnum = pos.pos_lnum + 1; pos_bol = 0}
 }
 
 
@@ -84,8 +84,8 @@ rule basic = parse
 	| "As" {AS}
 	| const {CONST}
 	
-	| "True"{TRUE}
-	| "False"{FALSE}
+	| "True" {TRUE}
+	| "False" {FALSE}
 
 	| type_string {TYPE_STRING}
 	| type_double {TYPE_DOUBLE}
@@ -93,8 +93,9 @@ rule basic = parse
 	| type_single {TYPE_CHAR}
 	
 	| ident as id {IDENT id}
-
-	| ' ' | '\t' | '\n' {basic lexbuf}
+	
+	| '\n' {incr_line lexbuf ; basic lexbuf}
+	| ' ' | '\t' | '\r' {basic lexbuf}
 	| _ as c {CHAR c}
 	| eof {EOF}
 

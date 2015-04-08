@@ -2,9 +2,9 @@
 	open Arbre
 
 	let x = {struct_fonc= []; struct_instr=[]; struct_import=[]}
-	let add_fonc a = x.struct_fonc <- a@x.struct_fonc
-	let add_import a = x.struct_import <- a@x.struct_import
-	let add_instr a = x.struct_instr <- a@x.struct_instr
+	let add_fonc a = x.struct_fonc <- x.struct_fonc@a
+	let add_import a = x.struct_import <- x.struct_import@a
+	let add_instr a = x.struct_instr <- x.struct_instr@a
 
 	let rec ajout_fin(l,e) = match l with
 		| [] -> [e]
@@ -104,9 +104,9 @@ main:
 ;
 
 prog:
-	| import prog  {add_import $1;set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-	| fonctions prog {add_fonc $1;set_prog_list x.struct_instr x.struct_fonc x.struct_import}
-	| instr prog {add_instr $1;set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
+	| prog import {add_import $2;set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| prog fonctions {add_fonc $2;set_prog_list x.struct_instr x.struct_fonc x.struct_import}
+	| prog contenu {add_instr $2;set_prog_list x.struct_instr  x.struct_fonc x.struct_import}
 	| {set_prog_list x.struct_instr x.struct_fonc x.struct_import}
 ;
 
@@ -115,31 +115,46 @@ import :
 ;
 
 instr :	
-	| DIM AS types enum_identMult instr {DimMult($4, $3)::$5}
-	| DIM enum_ident instr {$2@$3}
+	| instr DIM AS types enum_identMult {$1@(DimMult($5, $4)::[Empty])}
+	| instr DIM enum_ident {$1@$3}
+	| DIM AS types enum_identMult {DimMult($4, $3)::[Empty]}
+	| DIM enum_ident {$2@[Empty]}
 	
-	| IDENT AFFECT terminal multAffect instr {Affect($1, $3)::($4@$5)}
+	| instr IDENT AFFECT operation multAffect {$1@(Affect($2, $4)::$5)}
+	| IDENT AFFECT operation multAffect {Affect($1, $3)::($4@[Empty])}
 	
-	| IF condition THEN instr else_block ENDIF instr {If($2)::Then::($4@$5@EndIf::$7)}
+	| instr IF condition THEN contenu else_block ENDIF {$1@(If($3)::Then::($5@$6@[EndIf]))}
+	| IF condition THEN contenu else_block ENDIF {If($2)::Then::($4@$5@EndIf::[Empty])}
+	/*
+	| instr DO WHILE condition contenu LOOP {$1@(Do::($5@Loop::DoWhile($4)::[Empty]))}
+	| instr DO UNTIL condition contenu LOOP {$1@(Do::($4@Loop::DoWhile($3)::[Empty]))}
+	*/
+	| instr DO contenu LOOP WHILE condition {$1@(Do::($3@Loop::DoWhile($6)::[Empty]))}
+	| instr DO contenu LOOP UNTIL condition {$1@(Do::($3@Loop::DoWhile($6)::[Empty]))}
+	| DO contenu LOOP WHILE condition {Do::($2@Loop::DoWhile($5)::[Empty])}
+	| DO contenu LOOP UNTIL condition {Do::($2@Loop::DoWhile($5)::[Empty])}
 	
-	| DO WHILE condition instr LOOP instr {Do::($4@Loop::DoWhile($3)::$6)}
-	| DO UNTIL condition instr LOOP instr {Do::($4@Loop::Until($3)::$6)}
-	
-	| DO instr LOOP WHILE condition instr {Do::($2@Loop::DoWhile($5)::$6)}
-	| DO instr LOOP UNTIL condition instr {Do::($2@Loop::Until($5)::$6)}
-	
-	| WHILE condition instr WEND instr {While($2)::($3@Wend::$5)}
+	| instr WHILE condition contenu WEND {$1@(While($3)::($4@[Wend]))}
+	| WHILE condition contenu WEND {While($2)::($3@Wend::[Empty])}
 
-	| FOR IDENT AFFECT var_val TO terminal STEP math_signe var_val instr NEXT IDENT instr {For(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next::$13)}   
-	| FOR IDENT AS types AFFECT var_val TO terminal STEP math_signe var_val instr NEXT IDENT instr {For(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next::$15)}
+	| instr FOR IDENT AFFECT var_val TO terminal STEP math_signe var_val contenu NEXT IDENT {$1@(For(Ident $3,Empty,Empty,Equal,$5,To,$7,Step,$9,$10)::($11@[Next]))}   
+	| instr FOR IDENT AS types AFFECT var_val TO terminal STEP math_signe var_val contenu NEXT IDENT {$1@(For(Ident $3,As,$5,Equal,$7,To,$9,Step,$11,$12)::($13@[Next]))}
+	| FOR IDENT AFFECT var_val TO terminal STEP math_signe var_val contenu NEXT IDENT {For(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next::[Empty])}   
+	| FOR IDENT AS types AFFECT var_val TO terminal STEP math_signe var_val contenu NEXT IDENT {For(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next::[Empty])}
 	
-	| PRINT terminal instr {Print($2)::$3}
+	| instr PRINT terminal {$1@(Print($3)::[Empty])}
+	| PRINT terminal {Print($2)::[Empty]}
 	
+	/*| {[Empty]}*/
+;
+
+contenu :
+	| instr {$1}
 	| {[Empty]}
 ;
 
 multAffect :
-	| COLON IDENT AFFECT terminal multAffect {Affect($2, $4)::$5}
+	| COLON IDENT AFFECT operation multAffect {Affect($2, $4)::$5}
 	| {[Empty]}
 ;
 
@@ -150,8 +165,8 @@ else_block :
 ;
 
 fonctions :
-	| SUB IDENT args fonc_instr END_SUB {Sub($2)::($3@$4@[EndSub])}
-	| FUNCTION IDENT args AS types fonc_instr RETURN terminal END_FUNC {Function($2,return_type($5))::($3@$6@Return($8)::[EndFunc])}
+	| SUB IDENT args contenu_fonc END_SUB {Sub($2)::($3@$4@[EndSub])}
+	| FUNCTION IDENT args AS types contenu_fonc RETURN terminal END_FUNC {Function($2,return_type($5))::($3@$6@Return($8)::[EndFunc])}
 	| DECLARE FUNCTION IDENT args AS types {[Empty]}
 ;
 
@@ -177,26 +192,41 @@ enum_ident :
 ;
 
 fonc_instr :
-	| DIM AS types enum_identMult fonc_instr {DimMult_fonc($4, $3)::$5}
-	| DIM enum_ident_fonc fonc_instr {$2@$3}
+	| fonc_instr DIM AS types enum_identMult {$1@(DimMult_fonc($5, $4)::[Empty])}
+	| fonc_instr DIM enum_ident_fonc {$1@$3}
+	| DIM AS types enum_identMult {DimMult_fonc($4, $3)::[Empty]}
+	| DIM enum_ident_fonc {$2@[Empty]}	
 	
-	| IDENT AFFECT terminal multAffect_fonc fonc_instr {Affect_fonc($1, $3)::($4@$5)}
+	| fonc_instr IDENT AFFECT operation multAffect_fonc {$1@(Affect_fonc($2, $4)::$5)}
+	| IDENT AFFECT operation multAffect_fonc {Affect_fonc($1, $3)::($4@[Empty])}
 	
-	| IF condition THEN fonc_instr else_block_fonc ENDIF fonc_instr {If_fonc($2)::Then_fonc::($4@$5@EndIf_fonc::$7)}
+	| fonc_instr IF condition THEN fonc_instr else_block_fonc ENDIF {$1@(If_fonc($3)::Then_fonc::($5@$6@[EndIf_fonc]))}
+	| IF condition THEN fonc_instr else_block_fonc ENDIF {If_fonc($2)::Then_fonc::($4@$5@EndIf_fonc::[Empty])}
+	/*
+	| fonc_instr DO WHILE condition fonc_instr LOOP {$1@(Do_fonc::($4@Loop_fonc::DoWhile_fonc($3)::[Empty]))}
+	| fonc_instr DO UNTIL condition fonc_instr LOOP {$1@(Do_fonc::($4@Loop_fonc::DoWhile_fonc($3)::[Empty]))}
+	*/
+	| fonc_instr DO fonc_instr LOOP WHILE condition {$1@(Do_fonc::($3@Loop_fonc::DoWhile_fonc($6)::[Empty]))}
+	| fonc_instr DO fonc_instr LOOP UNTIL condition {$1@(Do_fonc::($3@Loop_fonc::DoWhile_fonc($6)::[Empty]))}
+	| DO fonc_instr LOOP WHILE condition {Do_fonc::($2@Loop_fonc::DoWhile_fonc($5)::[Empty])}
+	| DO fonc_instr LOOP UNTIL condition {Do_fonc::($2@Loop_fonc::DoWhile_fonc($5)::[Empty])}
 	
-	| DO WHILE condition fonc_instr LOOP fonc_instr {Do_fonc::($4@Loop_fonc::DoWhile_fonc($3)::$6)}
-	| DO UNTIL condition fonc_instr LOOP fonc_instr {Do_fonc::($4@Loop_fonc::Until_fonc($3)::$6)}
-	
-	| DO fonc_instr LOOP WHILE condition fonc_instr {Do_fonc::($2@Loop_fonc::DoWhile_fonc($5)::$6)}
-	| DO fonc_instr LOOP UNTIL condition fonc_instr {Do_fonc::($2@Loop_fonc::Until_fonc($5)::$6)}
-	
-	| WHILE condition fonc_instr WEND fonc_instr {While_fonc($2)::($3@Wend_fonc::$5)}
+	| fonc_instr WHILE condition fonc_instr WEND {$1@(While_fonc($3)::($4@[Wend_fonc]))}
+	| WHILE condition fonc_instr WEND {While_fonc($2)::($3@Wend_fonc::[Empty])}
 
-	| FOR IDENT AFFECT var_val TO terminal STEP math_signe var_val fonc_instr NEXT IDENT fonc_instr {For_fonc(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next_fonc::$13)}   
-	| FOR IDENT AS types AFFECT var_val TO terminal STEP math_signe var_val fonc_instr NEXT IDENT fonc_instr {For_fonc(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next_fonc::$15)}
+	| fonc_instr FOR IDENT AFFECT var_val TO borne_condition STEP math_signe var_val fonc_instr NEXT IDENT {$1@(For_fonc(Ident $3,Empty,Empty,Equal,$5,To,$7,Step,$9,$10)::($11@[Next_fonc]))}   
+	| fonc_instr FOR IDENT AS types AFFECT var_val TO borne_condition STEP math_signe var_val fonc_instr NEXT IDENT {$1@(For_fonc(Ident $3,As,$5,Equal,$7,To,$9,Step,$11,$12)::($13@[Next_fonc]))}
+	| FOR IDENT AFFECT var_val TO borne_condition STEP math_signe var_val fonc_instr NEXT IDENT {For_fonc(Ident $2,Empty,Empty,Equal,$4,To,$6,Step,$8,$9)::($10@Next_fonc::[Empty])}   
+	| FOR IDENT AS types AFFECT var_val TO borne_condition STEP math_signe var_val fonc_instr NEXT IDENT {For_fonc(Ident $2,As,$4,Equal,$6,To,$8,Step,$10,$11)::($12@Next_fonc::[Empty])}
 	
-	| PRINT terminal fonc_instr {Print_fonc($2)::$3}
+	| fonc_instr PRINT terminal {$1@(Print_fonc($3)::[Empty])}
+	| PRINT terminal {Print_fonc($2)::[Empty]}
 	
+	/*| {[Empty]}*/
+;
+
+contenu_fonc :
+	| fonc_instr {$1}
 	| {[Empty]}
 ;
 
@@ -206,7 +236,7 @@ enum_ident_fonc :
 ;
 
 multAffect_fonc :
-	| COLON IDENT AFFECT terminal multAffect_fonc {Affect_fonc($2, $4)::$5}
+	| COLON IDENT AFFECT operation multAffect_fonc {Affect_fonc($2, $4)::$5}
 	| {[Empty]}
 ;
 
@@ -214,6 +244,12 @@ else_block_fonc :
 	| ELSEIF condition THEN fonc_instr else_block_fonc {ElseIf_fonc($2)::Then_fonc::($4@$5)}
 	| ELSE fonc_instr {Else_fonc::$2}
 	| {[Empty]}
+;
+
+operation :
+	| LPAREN operation RPAREN {"("^$2^")"}
+	| operation math_signe operation {$1^(return_math $2)^$3}
+	| terminal {return_terminal $1}
 ;
 
 terminal :
@@ -237,22 +273,22 @@ operateur :
 condition :
 	| TRUE {Conditionnelle(True,Empty,Empty)}
 	| FALSE {Conditionnelle(False,Empty,Empty)}
-	| terminal operateur terminal {Conditionnelle($1,$2,$3)}
-	| terminal {Conditionnelle($1,Empty,Empty)}
+	| borne_condition operateur borne_condition {Conditionnelle($1,$2,$3)}
 ;
 
 
 math_signe :
 	| PLUS {Plus}
 	| MINUS {Minus}
+	| DIV {Div}
+	| MUL {Mul}
 ;
 
-/*borne_condition :
+borne_condition :
 	| IDENT {Ident $1}
 	| INT {Integer $1}
 	| DOUBLE {Double $1}
-	| STRING {String $1}
-;*/
+;
 
 var_val :
 	| INT {Integer $1}
