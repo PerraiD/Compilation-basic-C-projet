@@ -118,9 +118,16 @@ import :
 	| INCLUDE {[Include($1)]}
 ;
 
+contenu :
+	| instr {$1}
+	| {[Empty]}
+;
+
 instr :
 	| instr LCOM {$1@(SCom($2)::[Empty])}
+	| LCOM {SCom($1)::[Empty]}
 	| instr MCOM {$1@(MCom($2)::[Empty])}
+	| MCOM {MCom($1)::[Empty]}
 	
 	| instr DIM AS types enum_identMult {$1@(DimMult($5, $4)::[Empty])}
 	| instr DIM enum_ident {$1@$3}
@@ -155,26 +162,21 @@ instr :
 	/*| {[Empty]}*/
 ;
 
-contenu :
-	| instr {$1}
-	| {[Empty]}
-;
-
 multAffect :
 	| COLON IDENT AFFECT operation multAffect {Affect($2, $4)::$5}
 	| {[Empty]}
 ;
 
 else_block :
-	| ELSEIF condition THEN contenu else_suite {ElseIf($2)::Then::($4@$5)}
+	| ELSEIF condition THEN contenu else_block {ElseIf($2)::Then::($4@$5)}
 	| ELSE instr {Else::$2}
 	| {[Empty]}
 ;
 
-else_suite :
+/*else_suite :
 	| ELSEIF condition THEN contenu else_suite {ElseIf($2)::Then::($4@$5)}
 	| {Else::[Empty]}
-;
+;*/
 
 fonctions :
 	| SUB IDENT args contenu_fonc END_SUB {Sub($2)::($3@$4@[EndSub])}
@@ -253,15 +255,15 @@ multAffect_fonc :
 ;
 
 else_block_fonc :
-	| ELSEIF condition THEN contenu_fonc else_suite_fonc {ElseIf_fonc($2)::Then_fonc::($4@$5)}
+	| ELSEIF condition THEN contenu_fonc else_block_fonc {ElseIf_fonc($2)::Then_fonc::($4@$5)}
 	| ELSE fonc_instr {Else_fonc::$2}
 	| {[Empty]}
 ;
 
-else_suite_fonc :
+/*else_suite_fonc :
 	| ELSEIF condition THEN contenu_fonc else_suite_fonc {ElseIf_fonc($2)::Then_fonc::($4@$5)}
 	| {Else_fonc::[Empty]}
-;
+;*/
 
 operation :
 	| LPAREN operation RPAREN {"("^$2^")"}
@@ -292,7 +294,6 @@ condition :
 	| FALSE {Conditionnelle(False,Empty,Empty)}
 	| borne_condition operateur borne_condition {Conditionnelle($1,$2,$3)}
 ;
-
 
 math_signe :
 	| PLUS {Plus}
