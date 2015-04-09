@@ -1,5 +1,5 @@
 {
-	open Patterns
+	open Parser
 	open Lexing
 
 	(** Increments the lexing buffer line number counter.*)

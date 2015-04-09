@@ -2,7 +2,7 @@
 
 let parse input_file = 
 let lexbuf = Lexing.from_channel (open_in input_file) in
-Patterns.main Parser.basic lexbuf
+Parser.main Lexer.basic lexbuf
 
 
 let () =
