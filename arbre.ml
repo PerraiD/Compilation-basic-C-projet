@@ -356,7 +356,7 @@ let rec print_instr structprog = match structprog with
 														print_terminal(t_d);
 														output_string oc (";");
 														print_terminal(t_a);
-														output_string oc (" < "); 
+														output_string oc (" <= "); 
 														print_terminal(t_f);
 														output_string oc (";");
 														print_terminal(t_a);
@@ -509,7 +509,7 @@ let rec print_fonc structprog = match structprog with
 															print_terminal(t_d);
 															output_string oc (";");
 															print_terminal(t_a);
-															output_string oc (" < "); 
+															output_string oc (" <= "); 
 															print_terminal(t_f);
 															output_string oc (";");
 															print_terminal(t_a);
