@@ -23,8 +23,8 @@ Do
 	Loop While n < 5
 	Do
 		Print k
-	Loop Until k > 8
-Loop Until n > 10
+	Loop While k > 8
+Loop While n > 10
 Sub Test (v As Integer, b As String)
 	v = 5: b="toto"
 	If v > 10 Then

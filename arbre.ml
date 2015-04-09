@@ -192,11 +192,11 @@ let verifTypeIdent typ retour = match Hashtbl.find hash_table_fonc retour with
 
 let verifType typ retour = match retour with
 	| "int" when "int" = typ -> ();
-	| "int" when "int" <> typ -> print_string("1[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "int" when "int" <> typ -> print_string("[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
 	| "double" when "double" = typ -> ();
-	| "double" when "double" <> typ -> print_string("2[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "double" when "double" <> typ -> print_string("[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
 	| "char*" when "char*" = typ -> ();
-	| "char*" when "char*" <> typ -> print_string("4[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "char*" when "char*" <> typ -> print_string("[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
 	| _ -> verifTypeIdent typ retour;
 ;;
 
@@ -443,8 +443,8 @@ let rec print_fonc structprog = match structprog with
 								print_fonc tl;
 								
 	| Func_fonc(f)::tl -> 	indentation_fonc ();
-						output_string oc (f^";\n");
-						print_fonc tl;
+							output_string oc (f^";\n");
+							print_fonc tl;
 								
 	| If_fonc(cond)::tl -> 	indentation_fonc (); 
 							incr(indent_func);
