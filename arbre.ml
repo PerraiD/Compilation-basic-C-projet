@@ -21,7 +21,6 @@ type t_terminal =
 		| Ident of string
 		| Integer of string
 		| Double of string
-		| Char of string
 		| String of string
 		| True
 		| False
@@ -56,7 +55,6 @@ type  t_type =
 		| Tint  of string
 		| Tdouble of string
 		| Tstring of string
-		| Tchar of string
 		| Empty
 ;;
 
@@ -65,9 +63,12 @@ type t_instr =
 		| MCom of string
 	
 		| DimMult of string list * t_type
+		| DimAffect of string * t_type * string
 		| Decl of string * t_type
 		| Affect of string * string
 		| Print of t_terminal
+		| Func of string
+		
 		| If of t_condition
 		| ElseIf of t_condition
 		| Then 
@@ -80,7 +81,7 @@ type t_instr =
 		| Loop
 		
 		| DoWhile of t_condition
-		| For of t_terminal * t_terminal * t_type * t_operateur * t_terminal * t_terminal * t_terminal *  t_terminal * t_math* t_terminal
+		| For of t_terminal * t_terminal * t_type * t_terminal * t_terminal * t_terminal * t_terminal * t_math * t_terminal
 		| Next
 		
 		| Empty
@@ -97,11 +98,13 @@ type t_fonc =
 		| MCom_fonc of string
 		
 		| DimMult_fonc of string list * t_type
-		| Decl of string * t_type
+		| DimAffect_fonc of string * t_type * string
+		| Decl_fonc of string * t_type
 		| Declf of string * t_type
 		| DeclE
 		| Affect_fonc of string * string
 		| Print_fonc of t_terminal
+		| Func_fonc of string
 		
 		| If_fonc of t_condition
 		| ElseIf_fonc of t_condition
@@ -115,7 +118,7 @@ type t_fonc =
 		| Loop_fonc
 		
 		| DoWhile_fonc of t_condition
-		| For_fonc of t_terminal * t_terminal * t_type * t_operateur * t_terminal * t_terminal * t_terminal *  t_terminal * t_math* t_terminal
+		| For_fonc of t_terminal * t_terminal * t_type * t_terminal * t_terminal * t_terminal *  t_terminal * t_math* t_terminal
 		| Next_fonc
 		
 		| Empty
@@ -140,7 +143,6 @@ let return_type = function
 	| Tint(v) -> v;
 	| Tdouble(v) -> v;
 	| Tstring(v) -> v;
-	| Tchar(v) -> v;
 	| Empty -> "";
 ;;
 
@@ -148,7 +150,6 @@ let return_terminal = function
 	| Ident(id) -> id;
 	| Double(v) -> v;
 	| Integer(v) -> v;
-	| Char(v) -> v;
 	| String(v) -> v;
 	| True -> "true";
 	| False -> "false";
@@ -160,10 +161,9 @@ let return_terminal = function
 
 let return_type_terminal = function
 	| Ident(id) -> id;
-	| Double(v) -> "double ";
-	| Integer(v) -> "int ";
-	| Char(v) -> "char ";
-	| String(v) -> "char* ";
+	| Double(v) -> "double";
+	| Integer(v) -> "int";
+	| String(v) -> "char*";
 	| True -> "true";
 	| False -> "false";
 	| As -> "";
@@ -191,14 +191,12 @@ let verifTypeIdent typ retour = match Hashtbl.find hash_table_fonc retour with
 ;;
 
 let verifType typ retour = match retour with
-	| "int " when "int " = typ -> ();
-	| "int " when "int " <> typ -> print_string("1[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
-	| "double " when "double " = typ -> ();
-	| "double " when "double " <> typ -> print_string("2[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
-	| "char " when "char " = typ -> ();
-	| "char " when "char " <> typ -> print_string("3[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
-	| "char* " when "char* " = typ -> ();
-	| "char* " when "char* " <> typ -> print_string("4[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "int" when "int" = typ -> ();
+	| "int" when "int" <> typ -> print_string("1[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "double" when "double" = typ -> ();
+	| "double" when "double" <> typ -> print_string("2[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
+	| "char*" when "char*" = typ -> ();
+	| "char*" when "char*" <> typ -> print_string("4[Erreur] La fonction \""^(!nameFunc)^"\" devrait retourner : "^typ^"\n");
 	| _ -> verifTypeIdent typ retour;
 ;;
 
@@ -206,7 +204,6 @@ let rec print_terminal t = match t with
 	| Ident(id) -> output_string oc (id);
 	| Double(v) -> output_string oc (v);
 	| Integer(v) -> output_string oc (v);
-	| Char(v) -> output_string oc (v);
 	| String(v) -> output_string oc (v);
 	| True -> output_string oc ("true");
 	| False -> output_string oc ("false");
@@ -215,26 +212,24 @@ let rec print_terminal t = match t with
 	
 and printf_terminal t = match t with 
 	| Ident(id) -> print_ident id hash_table;
-	| Double(v) -> output_string oc ("printf(\"%lf\", "^v^");\n");
-	| Integer(v) -> output_string oc ("printf(\"%d\", "^v^");\n");
-	| Char(v) -> output_string oc ("printf(\"%c\", "^v^");\n");
-	| String(v) -> output_string oc ("printf(\"%s\", "^v^");\n");
+	| Double(v) -> output_string oc ("printf(\"%lf\\n\", "^v^");\n");
+	| Integer(v) -> output_string oc ("printf(\"%d\\n\", "^v^");\n");
+	| String(v) -> output_string oc ("printf(\"%s\\n\", "^v^");\n");
 	| Empty -> ();
 	| _ -> ();
 	
 and printf_terminal_fonc t = match t with 
 	| Ident(id) -> print_ident id hash_table_fonc;
-	| Double(v) -> output_string oc ("printf(\"%lf\", "^v^");\n");
-	| Integer(v) -> output_string oc ("printf(\"%d\", "^v^");\n");
-	| Char(v) -> output_string oc ("printf(\"%c\", "^v^");\n");
-	| String(v) -> output_string oc ("printf(\"%s\", "^v^");\n");
+	| Double(v) -> output_string oc ("printf(\"%lf\\n\", "^v^");\n");
+	| Integer(v) -> output_string oc ("printf(\"%d\\n\", "^v^");\n");
+	| String(v) -> output_string oc ("printf(\"%s\\n\", "^v^");\n");
 	| Empty -> ();
 	| _ -> ();
 	
 and print_ident id hash = match Hashtbl.find hash id with
-	|"int " -> output_string oc ("printf(\"%d\","^id^");\n");
-    |"double "-> output_string oc ("printf(\"%lf\","^id^");\n");
-    |"char* "-> output_string oc ("printf(\"%s\","^id^");\n");
+	|"int" -> output_string oc ("printf(\"%d\\n\","^id^");\n");
+    |"double"-> output_string oc ("printf(\"%lf\\n\","^id^");\n");
+    |"char*"-> output_string oc ("printf(\"%s\\n\","^id^");\n");
 	| _ -> ();
 
 and  print_operateur = function
@@ -256,10 +251,9 @@ and print_math = function
 	| Div -> output_string oc ("/");
 
 and print_type = function 
-	| Tint(v) -> output_string oc (v);
-	| Tdouble(v) -> output_string oc (v);
-	| Tstring(v) -> output_string oc (v);
-	| Tchar(v) -> output_string oc (v);
+	| Tint(v) -> output_string oc (v^" ");
+	| Tdouble(v) -> output_string oc (v^" ");
+	| Tstring(v) -> output_string oc (v^" ");
 	| Empty -> ();
 ;;
 
@@ -274,17 +268,30 @@ let rec print_instr structprog = match structprog with
 	
 	| DimMult(vars, typ)::tl -> hasher(typ, vars);
 								indentation ();
-								output_string oc ((return_type typ)^(String.concat ", " vars)^";\n"); 
+								output_string oc ((return_type typ)^" "^(String.concat ", " vars)^";\n"); 
 								print_instr tl;
 								
-	| Decl(id, typ)::tl -> 	Hashtbl.add hash_table id (return_type typ); 
-							indentation (); 
-							output_string oc ((return_type typ)^id^";\n"); 
+	| DimAffect(id, typ, v)::tl -> 	Hashtbl.add hash_table id (return_type typ);
+									indentation ();
+									output_string oc ((return_type typ)^" "^id^" = "^v^";\n");
+									print_instr tl;
+								
+	| Decl(id, typ)::tl -> 	Hashtbl.add hash_table id (return_type typ);
+							indentation ();
+							output_string oc ((return_type typ)^" "^id^";\n");
 							print_instr tl;
 							
 	| Affect(id, v)::tl -> 	indentation();
 							output_string oc (id^" = "^v^";\n");
 							print_instr tl;
+							
+	| Print(print)::tl -> 	indentation ();
+							printf_terminal(print);
+							print_instr tl;
+							
+	| Func(f)::tl -> 	indentation ();
+						output_string oc (f^";\n");
+						print_instr tl;
 							
 	| If(cond)::tl -> 	indentation ();
 						incr(indent);
@@ -340,33 +347,29 @@ let rec print_instr structprog = match structprog with
 					output_string oc ("} ");
 					print_instr tl;
 	
-	| For(t_a,t_b,typ,t_ope,t_d,t_e,t_f,t_g,math,t_i)::tl -> 	indentation (); 
-																incr(indent); 
-																output_string oc("for (");
-																print_type(typ);
-																print_terminal(t_a);
-																print_operateur(t_ope);
-																print_terminal(t_d);
-																output_string oc (";");
-																print_terminal(t_a);
-																output_string oc (" < "); 
-																print_terminal(t_f);
-																output_string oc (";");
-																print_terminal(t_a);
-																print_math(math);
-																output_string oc("=");
-																print_terminal(t_i);
-																output_string oc("){\n");
-																print_instr tl;
+	| For(t_a,t_b,typ,t_d,t_e,t_f,t_g,math,t_i)::tl -> 	indentation (); 
+														incr(indent); 
+														output_string oc("for (");
+														print_type(typ);
+														print_terminal(t_a);
+														output_string oc("=");
+														print_terminal(t_d);
+														output_string oc (";");
+														print_terminal(t_a);
+														output_string oc (" < "); 
+														print_terminal(t_f);
+														output_string oc (";");
+														print_terminal(t_a);
+														print_math(math);
+														output_string oc("=");
+														print_terminal(t_i);
+														output_string oc("){\n");
+														print_instr tl;
 																
 	| Next::tl -> 	decr(indent);
 					indentation (); 
 					output_string oc ("}\n"); 
 					print_instr tl;
-
-	| Print(print)::tl -> 	indentation (); 
-							printf_terminal(print); 
-							print_instr tl;
 							
 	| Empty::tl -> print_instr tl;
 	| [] -> ();
@@ -383,15 +386,20 @@ let rec print_fonc structprog = match structprog with
 						
 	| DimMult_fonc(vars, typ)::tl -> 	hasher(typ, vars); 
 										indentation_fonc (); 
-										output_string oc ((return_type typ)^(String.concat ", " vars)^";\n"); 
+										output_string oc ((return_type typ)^" "^(String.concat ", " vars)^";\n"); 
+										print_fonc tl;
+	
+	| DimAffect_fonc(id, typ, v)::tl -> Hashtbl.add hash_table_fonc id (return_type typ);
+										indentation_fonc ();
+										output_string oc ((return_type typ)^" "^id^" = "^v^";\n");
 										print_fonc tl;
 								
-	| Decl(id, typ)::tl -> Hashtbl.add hash_table_fonc id (return_type typ);
-								output_string oc ((return_type typ)^id^", ");
+	| Decl_fonc(id, typ)::tl -> Hashtbl.add hash_table_fonc id (return_type typ);
+								output_string oc ((return_type typ)^" "^id^", ");
 								print_fonc tl;
 							
 	| Declf(id, typ)::tl -> Hashtbl.add hash_table_fonc id (return_type typ);
-							output_string oc ((return_type typ)^id^") {\n");
+							output_string oc ((return_type typ)^" "^id^") {\n");
 							print_fonc tl;
 							
 	| DeclE::tl -> 	output_string oc (") {\n");
@@ -415,7 +423,7 @@ let rec print_fonc structprog = match structprog with
 										nameFunc := nom;
 										indentation_fonc ();
 										incr(indent_func);
-										output_string oc ("\n"^type_retour^nom^"(");
+										output_string oc ("\n"^type_retour^" "^nom^"(");
 										print_fonc tl;
 										
 	| Return(retour)::tl -> verifType !typeFunc (return_type_terminal retour);
@@ -433,6 +441,10 @@ let rec print_fonc structprog = match structprog with
 	| Print_fonc(print)::tl -> 	indentation_fonc ();
 								printf_terminal_fonc(print);
 								print_fonc tl;
+								
+	| Func_fonc(f)::tl -> 	indentation_fonc ();
+						output_string oc (f^";\n");
+						print_fonc tl;
 								
 	| If_fonc(cond)::tl -> 	indentation_fonc (); 
 							incr(indent_func);
@@ -488,24 +500,24 @@ let rec print_fonc structprog = match structprog with
 						output_string oc ("} "); 
 						print_fonc tl;
 	
-	| For_fonc(t_a,t_b,typ,t_ope,t_d,t_e,t_f,t_g,math,t_i)::tl -> 	indentation_fonc (); 
-																	incr(indent_func);
-																	output_string oc("for (");
-																	print_type(typ);
-																	print_terminal(t_a);
-																	print_operateur(t_ope);
-																	print_terminal(t_d);
-																	output_string oc (";");
-																	print_terminal(t_a);
-																	output_string oc (" < "); 
-																	print_terminal(t_f);
-																	output_string oc (";");
-																	print_terminal(t_a);
-																	print_math(math);
-																	output_string oc("=");
-																	print_terminal(t_i);
-																	output_string oc("){\n");
-																	print_fonc tl;
+	| For_fonc(t_a,t_b,typ,t_d,t_e,t_f,t_g,math,t_i)::tl -> indentation_fonc (); 
+															incr(indent_func);
+															output_string oc("for (");
+															print_type(typ);
+															print_terminal(t_a);
+															output_string oc("=");
+															print_terminal(t_d);
+															output_string oc (";");
+															print_terminal(t_a);
+															output_string oc (" < "); 
+															print_terminal(t_f);
+															output_string oc (";");
+															print_terminal(t_a);
+															print_math(math);
+															output_string oc("=");
+															print_terminal(t_i);
+															output_string oc("){\n");
+															print_fonc tl;
 																
 	| Next_fonc::tl -> 	decr(indent_func);
 						indentation_fonc (); 
@@ -531,7 +543,8 @@ let print_prog prog =
 	lookingForIncludes prog.struct_instr;
 	print_import prog.struct_import;
 	print_fonc prog.struct_fonc;
-	output_string oc "int main(){\n\n";
+	output_string oc "\nint main(){\n\n";
 	print_instr prog.struct_instr;
-	output_string oc "\n}\n\n";
+	indentation(); output_string oc "return 0;\n";
+	output_string oc "}\n\n";
 ;;

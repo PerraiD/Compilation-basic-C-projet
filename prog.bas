@@ -2,13 +2,16 @@
 #include "math.h"
 
 Dim As Integer a, g, w, k, v
+Dim b As Integer = 5
+Dim n As Integer = 15
 If a > 5 Then
 	Print a
 ElseIf b > 10 Then
-	If s < 8 Then
+	If n < 8 Then
 		Print g
 	End If
 End If
+Dim z As String, p As Double
 Print w
 Function TestFunc (A As Double) As String
 	Print A
@@ -25,7 +28,7 @@ Loop Until n > 10
 Sub Test (v As Integer, b As String)
 	v = 5: b="toto"
 	If v > 10 Then
-		Print "cc je vais par là ? !,; ^$ *ù A 51 vc / - é 		\ \""
+		Print "cc je vais par là ? !,; ^$ *ù A 51 vc / - é  \""
 	End If
 	/' quelle belle fonction ! 
 		test
@@ -34,12 +37,12 @@ Sub Test (v As Integer, b As String)
 	Print b
 End Sub
 v = 5*4/5+3: k = 99
-a = "b"
+a = 5
 Print v
 While p < 4
 	Print v
 Wend
-For i As Single = 3 To 0 Step -0.5
+For i As Integer = 3 To 0 Step -0.5
 	Print "glagla"
 Next i
 'com1

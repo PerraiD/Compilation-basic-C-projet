@@ -23,7 +23,6 @@ let ident = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 let type_string = "String"
 let type_double = "Double"
 let type_integer = "Integer"
-let type_single = "Single"
 
 rule basic = parse
 	impr as ip {PRINT ip}
@@ -68,7 +67,6 @@ rule basic = parse
 	| "To" {TO}
 	| "Step" {STEP}
 	
-	| "Until" {UNTIL}
 	| "Do" {DO}
 	| "Loop" {LOOP}
 	| "Next" {NEXT}
@@ -92,11 +90,10 @@ rule basic = parse
 	| type_string {TYPE_STRING}
 	| type_double {TYPE_DOUBLE}
 	| type_integer  {TYPE_INT}
-	| type_single {TYPE_CHAR}
 	
 	| ident as id {IDENT id}
 	
 	| '\n' {incr_line lexbuf; basic lexbuf}
 	| ' ' | '\t' | '\r' {basic lexbuf}
-	| _ as c {CHAR c}
+	| _ {basic lexbuf}
 	| eof {EOF}
